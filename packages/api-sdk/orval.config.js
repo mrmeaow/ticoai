@@ -1,12 +1,18 @@
 module.exports = {
-  input: '../../apps/api/src/api-docs/openapi.json',
-  output: {
-    mode: 'split',
-    target: './src/generated',
-    schemas: './src/generated/schemas',
-    client: './src/generated/client',
-  },
-  hooks: {
-    afterAllFilesWrite: 'prettier --write',
+  ticoai: {
+    input: {
+      target: '../../apps/api/src/api-docs/openapi.json',
+    },
+    output: {
+      mode: 'single',
+      target: './src/generated/ticoai-api.ts',
+      schemas: './src/generated/schemas',
+      client: 'axios-functions',
+      mock: false,
+      override: {
+        useTypeOverInterfaces: true,
+      },
+      clean: true,
+    },
   },
 };
