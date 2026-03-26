@@ -1,13 +1,20 @@
-const { NestFactory } = require('@nestjs/core');
-const { SwaggerModule, DocumentBuilder } = require('@nestjs/swagger');
-const { writeFileSync, mkdirSync } = require('fs');
-const { join } = require('path');
+import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { writeFileSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function bootstrap() {
   // Dynamically import the AppModule
-  const { AppModule } = await import('./dist/app.module.js');
+  const { AppModule } = await import('../dist/app.module.js');
 
   const app = await NestFactory.create(AppModule);
+
+  // Set global prefix to match actual API prefix
+  app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
     .setTitle('TICOAI API')
