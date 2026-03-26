@@ -1,11 +1,11 @@
-import { Injectable, Inject, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 import { AiRepository } from './ai.repository';
 import { TicketsService } from '../tickets/tickets.service';
 import { MessagesService } from '../messages/messages.service';
-import { SseService } from '../sse/sse.service';
+import { SseService, SseJobResult } from '../sse/sse.service';
 import { AiResult } from './entities/ai-result.entity';
 import { AiJobType, AiJobStatus } from '@pkg/types';
 import { randomUUID } from 'crypto';
@@ -62,6 +62,9 @@ export class AiService {
       type,
     } as AiJobData, { jobId });
 
+    // Notify SSE clients that job is pending
+    this.sseService.notify(jobId, { status: 'pending' });
+
     return { jobId, resultId: aiResult.id };
   }
 
@@ -70,6 +73,9 @@ export class AiService {
 
     try {
       await this.aiRepository.updateByJobId(jobId, { status: AiJobStatus.PROCESSING });
+
+      // Notify SSE clients that job is processing
+      this.sseService.notify(jobId, { status: 'processing' });
 
       const ticket = await this.ticketsService.findById(ticketId);
       const messages = await this.messagesService.findByTicketId(ticketId);
@@ -87,7 +93,7 @@ export class AiService {
       }
 
       this.sseService.notify(jobId, {
-        status: AiJobStatus.COMPLETED,
+        status: 'completed',
         result,
       });
     } catch (error) {
@@ -99,7 +105,7 @@ export class AiService {
       });
 
       this.sseService.notify(jobId, {
-        status: AiJobStatus.FAILED,
+        status: 'failed',
         error: errorMessage,
       });
 

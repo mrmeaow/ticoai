@@ -5,6 +5,5 @@
       "Bash(nohup *)",
       "Bash(sleep *)"
     ]
-  },
-  "$version": 3
+  }
 }
