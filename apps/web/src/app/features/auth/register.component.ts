@@ -14,6 +14,9 @@ import { AuthService } from '../../core/services/auth.service';
           <h2 class="text-center text-3xl font-bold text-gray-900">
             Create your account
           </h2>
+          <p class="mt-2 text-center text-sm text-gray-600">
+            Join TICOAI support system
+          </p>
         </div>
 
         @if (error()) {
@@ -26,16 +29,22 @@ import { AuthService } from '../../core/services/auth.service';
           <div class="space-y-4">
             <div>
               <label for="name" class="block text-sm font-medium text-gray-700">
-                Name
+                Full Name
               </label>
               <input
                 id="name"
                 name="name"
                 type="text"
                 required
+                minlength="2"
                 [(ngModel)]="name"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                #nameModel="ngModel"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-500 focus:border-brand-500"
+                [class.border-red-300]="nameModel.invalid && nameModel.touched"
               />
+              @if (nameModel.invalid && nameModel.touched) {
+                <p class="mt-1 text-sm text-red-600">Name must be at least 2 characters</p>
+              }
             </div>
 
             <div>
@@ -47,9 +56,15 @@ import { AuthService } from '../../core/services/auth.service';
                 name="email"
                 type="email"
                 required
+                email
                 [(ngModel)]="email"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                #emailModel="ngModel"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-500 focus:border-brand-500"
+                [class.border-red-300]="emailModel.invalid && emailModel.touched"
               />
+              @if (emailModel.invalid && emailModel.touched) {
+                <p class="mt-1 text-sm text-red-600">Please enter a valid email</p>
+              }
             </div>
 
             <div>
@@ -63,15 +78,20 @@ import { AuthService } from '../../core/services/auth.service';
                 required
                 minlength="6"
                 [(ngModel)]="password"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                #passwordModel="ngModel"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-500 focus:border-brand-500"
+                [class.border-red-300]="passwordModel.invalid && passwordModel.touched"
               />
+              @if (passwordModel.invalid && passwordModel.touched) {
+                <p class="mt-1 text-sm text-red-600">Password must be at least 6 characters</p>
+              }
             </div>
           </div>
 
           <button
             type="submit"
-            [disabled]="loading()"
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+            [disabled]="loading() || nameModel.invalid || emailModel.invalid || passwordModel.invalid"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             @if (loading()) {
               <span>Creating account...</span>
@@ -81,7 +101,7 @@ import { AuthService } from '../../core/services/auth.service';
           </button>
 
           <div class="text-center">
-            <a routerLink="/auth/login" class="text-sm text-primary hover:underline">
+            <a routerLink="/auth/login" class="text-sm text-brand-600 hover:underline">
               Already have an account? Sign in
             </a>
           </div>
@@ -100,6 +120,11 @@ export class RegisterComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
+    if (!this.name || !this.email || !this.password) {
+      this.error.set('Please fill in all fields');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -109,7 +134,7 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message || 'Registration failed');
+        this.error.set(err.error?.message || 'Registration failed. Please try again.');
       },
     });
   }
