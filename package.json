@@ -1,0 +1,28 @@
+{
+  "name": "ticoai",
+  "version": "2.0.0",
+  "description": "AI-Powered Customer Support Ticket System",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -- pnpm --parallel dev",
+    "dev:api": "dotenv -- pnpm --filter @app/api dev",
+    "dev:web": "dotenv -- pnpm --filter @app/web dev",
+    "build": "pnpm build:web && pnpm build:api",
+    "build:api": "pnpm --filter @app/api build",
+    "build:web": "pnpm --filter @app/web build",
+    "start": "dotenv -- pnpm --filter @app/api start:prod",
+    "sdk:gen": "pnpm --filter @app/api sdk:export && pnpm --filter @pkg/api-sdk generate",
+    "test": "pnpm -r test",
+    "db:migrate": "dotenv -- pnpm --filter @app/api migration:run",
+    "db:seed": "dotenv -- pnpm --filter @app/api seed",
+    "db:init": "dotenv -- pnpm --filter @app/api db:init"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.3.1",
+    "dotenv-cli": "^11.0.0"
+  }
+}
