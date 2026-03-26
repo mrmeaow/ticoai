@@ -3,13 +3,13 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { TicketsRepository } from './tickets.repository';
+import { TicketsRepository, FindTicketsOptions, FindTicketsResult } from './tickets.repository';
 import { UsersService } from '../users/users.service';
 import { Ticket } from './entities/ticket.entity';
 import { User } from '../users/entities/user.entity';
 import { TicketStatus, TicketPriority } from '@pkg/types';
 
-interface CreateTicketDto {
+export interface CreateTicketDto {
   title: string;
   description: string;
   priority?: TicketPriority;
@@ -17,7 +17,7 @@ interface CreateTicketDto {
   createdById: string;
 }
 
-interface UpdateTicketDto {
+export interface UpdateTicketDto {
   title?: string;
   description?: string;
   status?: TicketStatus;
@@ -40,15 +40,16 @@ export class TicketsService {
     return ticket;
   }
 
-  async findAll(options: {
-    status?: TicketStatus;
-    priority?: TicketPriority;
-    assigneeId?: string;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<{ tickets: Ticket[]; total: number }> {
-    return this.ticketsRepository.findAll(options);
+  async findAll(
+    options: FindTicketsOptions,
+    userId?: string,
+    isAdmin = false,
+  ): Promise<FindTicketsResult> {
+    return this.ticketsRepository.findAll({
+      ...options,
+      userId,
+      isAdmin,
+    });
   }
 
   async create(dto: CreateTicketDto): Promise<Ticket> {
@@ -98,7 +99,7 @@ export class TicketsService {
     await this.ticketsRepository.delete(id);
   }
 
-  async getStats(assigneeId?: string, isAdmin = false): Promise<{
+  async getStats(userId?: string, isAdmin = false): Promise<{
     total: number;
     open: number;
     inProgress: number;
@@ -107,9 +108,7 @@ export class TicketsService {
     highPriority: number;
     recent: Ticket[];
   }> {
-    const { tickets } = await this.ticketsRepository.findAll({
-      assigneeId: isAdmin ? undefined : assigneeId,
-    });
+    const tickets = await this.ticketsRepository.findByUserId(userId!, isAdmin);
 
     const stats = {
       total: tickets.length,
