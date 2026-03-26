@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Sse, UseGuards, MessageEvent } from '@nestjs/common';
-import { Observable, interval, EMPTY } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { SseService } from './sse.service';
+import { Controller, Get, Param, Sse, MessageEvent, Query, UseGuards } from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { SseService, SseJobResult } from './sse.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -14,19 +14,17 @@ export class SseController {
   @Get(':jobId')
   @Permissions('ai:read')
   @Sse()
-  streamJobResults(@Param('jobId') jobId: string): Observable<MessageEvent> {
-    const hasClient = this.sseService.hasClient(jobId);
+  streamJobResults(
+    @Param('jobId') jobId: string,
+    @Query('token') token?: string,
+  ): Observable<MessageEvent> {
+    // Token extracted from query param by JwtAuthGuard for SSE compatibility
+    const stream$ = this.sseService.addClient(jobId);
 
-    if (!hasClient) {
-      this.sseService.addClient(jobId);
-    }
-
-    return interval(1000).pipe(
-      switchMap(() => {
-        return EMPTY;
-      }),
-      map((): MessageEvent => ({
-        data: { status: 'waiting', message: 'Waiting for AI job result...' },
+    return stream$.pipe(
+      map((result: SseJobResult): MessageEvent => ({
+        type: 'message',
+        data: JSON.stringify(result),
       })),
     );
   }
