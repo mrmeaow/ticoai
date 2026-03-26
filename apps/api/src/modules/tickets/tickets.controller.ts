@@ -26,21 +26,32 @@ export class TicketsController {
   @Get()
   @Permissions('tickets:read')
   async findAll(
+    @CurrentUser() user: User,
     @Query('status') status?: TicketStatus,
     @Query('priority') priority?: TicketPriority,
     @Query('assigneeId') assigneeId?: string,
     @Query('search') search?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
+    @Query('cursor') cursor?: string,
   ) {
-    return this.ticketsService.findAll({
-      status,
-      priority,
-      assigneeId,
-      search,
-      page: parseInt(page.toString()),
-      limit: parseInt(limit.toString()),
-    });
+    const isAdmin = user.roles?.some((r) =>
+      ['SUPER_ADMIN', 'ADMIN'].includes(r.name),
+    );
+
+    return this.ticketsService.findAll(
+      {
+        status,
+        priority,
+        assigneeId,
+        search,
+        page: parseInt(page.toString()),
+        limit: parseInt(limit.toString()),
+        cursor,
+      },
+      user.id,
+      isAdmin,
+    );
   }
 
   @Get(':id')
