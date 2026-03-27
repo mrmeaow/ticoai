@@ -33,6 +33,11 @@
     }
 
     @if (ticket()) {
+      <!-- AI Panel -->
+      <div class="mb-6">
+        <app-ai-panel [ticketId]="ticketId" (actionRequested)="onAiAction($event)"></app-ai-panel>
+      </div>
+
       <!-- Ticket Header -->
       <div class="bg-white rounded-lg shadow mb-6">
         <div class="p-6 border-b border-gray-200">
