@@ -3,7 +3,9 @@
     "allow": [
       "Bash(pnpm *)",
       "Bash(nohup *)",
-      "Bash(sleep *)"
+      "Bash(sleep *)",
+      "Bash(gh *)",
+      "Bash(git add *)"
     ]
   },
   "$version": 3
