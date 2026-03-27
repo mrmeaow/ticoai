@@ -1,11 +1,11 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PermissionService {
-  private authService = new AuthService();
+  private authService = inject(AuthService);
 
   private userPermissions = computed(() => {
     const user = this.authService.currentUser();

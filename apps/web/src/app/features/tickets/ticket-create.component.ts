@@ -15,7 +15,7 @@ import { ErrorMessageComponent } from '../../shared/components/error-message/err
 })
 export class TicketCreateComponent {
   private ticketService = inject(TicketService);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private router = inject(Router);
 
   title = '';
@@ -26,7 +26,11 @@ export class TicketCreateComponent {
   submitting = signal(false);
   error = signal<string | null>(null);
 
-  agents = this.ticketService.tickets;
+  // Mock agents list for dropdown
+  agents = signal<{ id: string; name: string }[]>([
+    { id: '1', name: 'John Agent' },
+    { id: '2', name: 'Jane Agent' },
+  ]);
 
   onSubmit() {
     this.submitted.set(true);

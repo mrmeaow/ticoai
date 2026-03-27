@@ -26,7 +26,7 @@
       <form (ngSubmit)="onSubmit()" class="p-6 space-y-6">
         <!-- Error Message -->
         @if (error()) {
-          <app-error-message [message]="error()" [dismissible]="true" (dismissed)="error.set(null)" />
+          <app-error-message [message]="error() || ''" [dismissible]="true" (dismissed)="error.set(null)" />
         }
 
         <!-- Title -->
