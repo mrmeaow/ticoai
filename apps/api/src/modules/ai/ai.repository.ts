@@ -50,4 +50,16 @@ export class AiRepository {
     if (!result) return null;
     return this.update(result.id, data);
   }
+
+  async deleteFailedJobsOlderThan(date: Date): Promise<number> {
+    const result = await this.aiResultRepository
+      .createQueryBuilder()
+      .delete()
+      .from(AiResult)
+      .where('status = :status', { status: AiJobStatus.FAILED })
+      .andWhere('createdAt < :date', { date })
+      .execute();
+
+    return result.affected || 0;
+  }
 }
