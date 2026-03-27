@@ -5,7 +5,8 @@
       "Bash(nohup *)",
       "Bash(sleep *)",
       "Bash(gh *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   },
   "$version": 3
