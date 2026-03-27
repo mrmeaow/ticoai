@@ -45,12 +45,15 @@ export class TicketService {
   private hasMoreSignal = signal(false);
   private nextCursorSignal = signal<string | undefined>(undefined);
 
+  private currentTicketSignal = signal<Ticket | null>(null);
+
   tickets = this.ticketsSignal.asReadonly();
   loading = this.loadingSignal.asReadonly();
   error = this.errorSignal.asReadonly();
   total = this.totalSignal.asReadonly();
   hasMore = this.hasMoreSignal.asReadonly();
   nextCursor = this.nextCursorSignal.asReadonly();
+  currentTicket = this.currentTicketSignal.asReadonly();
 
   loadTickets(filters: TicketFilters = {}) {
     this.loadingSignal.set(true);
@@ -73,6 +76,26 @@ export class TicketService {
         this.loadingSignal.set(false);
       },
     });
+  }
+
+  loadTicketById(id: string) {
+    this.loadingSignal.set(true);
+    this.errorSignal.set(null);
+
+    return this.http.get<Ticket>(`${this.apiUrl}/${id}`).subscribe({
+      next: (data) => {
+        this.currentTicketSignal.set(data);
+        this.loadingSignal.set(false);
+      },
+      error: (err) => {
+        this.errorSignal.set(err.error?.message || 'Failed to load ticket');
+        this.loadingSignal.set(false);
+      },
+    });
+  }
+
+  setCurrentTicket(ticket: Ticket | null) {
+    this.currentTicketSignal.set(ticket);
   }
 
   loadMore() {
