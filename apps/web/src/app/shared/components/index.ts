@@ -11,3 +11,4 @@ export { ModalComponent } from './modal/modal.component';
 export type { ToastType } from './toast/toast.component';
 export { ToastComponent } from './toast/toast.component';
 export { HeaderComponent } from './header/header.component';
+export { AiPanelComponent, type AiActionType, type AiActionResult } from './ai-panel/ai-panel.component';
