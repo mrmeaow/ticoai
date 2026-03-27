@@ -7,20 +7,25 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly client: Redis;
 
   constructor(private readonly configService: ConfigService) {
-    const host = this.configService.get<string>('redis.host', 'localhost');
-    const port = this.configService.get<number>('redis.port', 6379);
-    const password = this.configService.get<string | undefined>('redis.password');
+    // Always read from environment variables directly for test compatibility
+    const host = process.env.REDIS_HOST || this.configService.get<string>('redis.host') || 'localhost';
+    const port = parseInt(process.env.REDIS_PORT || '6379', 10);
+    const password = process.env.REDIS_PASSWORD || this.configService.get<string | undefined>('redis.password');
+    const nodeEnv = process.env.NODE_ENV || this.configService.get<string>('app.nodeEnv') || 'development';
+    const isTest = nodeEnv === 'test';
 
     this.client = new Redis({
       host,
       port,
       password,
-      retryStrategy: (times) => {
+      retryStrategy: isTest ? null : (times) => {
         if (times > 10) {
           return null;
         }
         return Math.min(times * 50, 2000);
       },
+      connectTimeout: isTest ? 5000 : 10000,
+      maxRetriesPerRequest: isTest ? 3 : null,
     });
 
     this.client.on('error', (err) => {

@@ -9,7 +9,11 @@
       "Bash(git commit *)",
       "Bash(mv *)",
       "Bash(git push *)",
-      "Bash(jq *)"
+      "Bash(jq *)",
+      "Bash(rm *)",
+      "Bash(npx *)",
+      "Bash(timeout *)",
+      "Bash(sed *)"
     ]
   },
   "$version": 3

@@ -1,11 +1,15 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
 import { TicketsService } from './tickets.service';
 import { TicketsRepository } from './tickets.repository';
+import { UsersRepository } from '../users/users.repository';
+import { UsersService } from '../users/users.service';
 import { TicketStatus, TicketPriority } from '@pkg/types';
 
 describe('TicketsService', () => {
   let ticketsService: TicketsService;
   let ticketsRepository: Partial<TicketsRepository>;
+  let usersRepository: Partial<UsersRepository>;
+  let usersService: Partial<UsersService>;
 
   const mockTicket = {
     id: 'ticket-uuid',
@@ -20,23 +24,40 @@ describe('TicketsService', () => {
     deletedAt: null,
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     ticketsRepository = {
-      findById: vi.fn(),
-      findAll: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      findRecent: vi.fn(),
-      findByUserId: vi.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      findRecent: jest.fn(),
+      findByUserId: jest.fn(),
     };
 
-    ticketsService = new TicketsService(ticketsRepository as TicketsRepository);
+    usersRepository = {
+      findById: jest.fn(),
+    };
+
+    usersService = {
+      findById: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TicketsService,
+        { provide: TicketsRepository, useValue: ticketsRepository },
+        { provide: UsersRepository, useValue: usersRepository },
+        { provide: UsersService, useValue: usersService },
+      ],
+    }).compile();
+
+    ticketsService = module.get<TicketsService>(TicketsService);
   });
 
   describe('findById', () => {
     it('should return a ticket by id', async () => {
-      (ticketsRepository.findById as vi.Mock).mockResolvedValue(mockTicket);
+      (ticketsRepository.findById as jest.Mock).mockResolvedValue(mockTicket);
 
       const result = await ticketsService.findById('ticket-uuid');
 
@@ -44,12 +65,11 @@ describe('TicketsService', () => {
       expect(ticketsRepository.findById).toHaveBeenCalledWith('ticket-uuid');
     });
 
-    it('should return null if ticket not found', async () => {
-      (ticketsRepository.findById as vi.Mock).mockResolvedValue(null);
+    it('should throw NotFoundException if ticket not found', async () => {
+      (ticketsRepository.findById as jest.Mock).mockResolvedValue(null);
 
-      const result = await ticketsService.findById('non-existent-id');
-
-      expect(result).toBeNull();
+      await expect(ticketsService.findById('non-existent-id'))
+        .rejects.toThrow('Ticket not found');
     });
   });
 
@@ -62,7 +82,7 @@ describe('TicketsService', () => {
         nextCursor: undefined,
       };
 
-      (ticketsRepository.findAll as vi.Mock).mockResolvedValue(mockResult);
+      (ticketsRepository.findAll as jest.Mock).mockResolvedValue(mockResult);
 
       const result = await ticketsService.findAll({}, 'user-id', false);
 
@@ -76,7 +96,7 @@ describe('TicketsService', () => {
         hasMore: false,
       };
 
-      (ticketsRepository.findAll as vi.Mock).mockResolvedValue(mockResult);
+      (ticketsRepository.findAll as jest.Mock).mockResolvedValue(mockResult);
 
       await ticketsService.findAll({ status: TicketStatus.OPEN }, 'user-id', false);
 
@@ -92,7 +112,7 @@ describe('TicketsService', () => {
         hasMore: false,
       };
 
-      (ticketsRepository.findAll as vi.Mock).mockResolvedValue(mockResult);
+      (ticketsRepository.findAll as jest.Mock).mockResolvedValue(mockResult);
 
       await ticketsService.findAll({ priority: TicketPriority.HIGH }, 'user-id', false);
 
@@ -111,15 +131,28 @@ describe('TicketsService', () => {
         createdById: 'user-id',
       };
 
-      (ticketsRepository.create as vi.Mock).mockResolvedValue({
+      const mockCreator = { id: 'user-id', name: 'Test User', email: 'test@example.com' };
+      (usersService.findById as jest.Mock).mockResolvedValue(mockCreator);
+      (ticketsRepository.create as jest.Mock).mockResolvedValue({
         ...mockTicket,
-        ...createDto,
+        title: createDto.title,
+        description: createDto.description,
+        priority: createDto.priority,
+        createdBy: mockCreator,
       });
 
       const result = await ticketsService.create(createDto);
 
       expect(result.title).toBe(createDto.title);
-      expect(ticketsRepository.create).toHaveBeenCalledWith(createDto);
+      expect(usersService.findById).toHaveBeenCalledWith(createDto.createdById);
+      expect(ticketsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: createDto.title,
+          description: createDto.description,
+          priority: createDto.priority,
+          createdBy: mockCreator,
+        }),
+      );
     });
   });
 
@@ -129,11 +162,11 @@ describe('TicketsService', () => {
         status: TicketStatus.IN_PROGRESS,
       };
 
-      (ticketsRepository.update as vi.Mock).mockResolvedValue({
+      (ticketsRepository.update as jest.Mock).mockResolvedValue({
         ...mockTicket,
         ...updateDto,
       });
-      (ticketsRepository.findById as vi.Mock).mockResolvedValue({
+      (ticketsRepository.findById as jest.Mock).mockResolvedValue({
         ...mockTicket,
         ...updateDto,
       });
@@ -147,7 +180,7 @@ describe('TicketsService', () => {
 
   describe('delete', () => {
     it('should soft delete a ticket', async () => {
-      (ticketsRepository.delete as vi.Mock).mockResolvedValue(undefined);
+      (ticketsRepository.delete as jest.Mock).mockResolvedValue(undefined);
 
       await ticketsService.delete('ticket-uuid');
 
@@ -164,11 +197,7 @@ describe('TicketsService', () => {
         { ...mockTicket, priority: TicketPriority.HIGH },
       ];
 
-      (ticketsRepository.findAll as vi.Mock).mockResolvedValue({
-        tickets: mockTickets,
-        total: 4,
-        hasMore: false,
-      });
+      (ticketsRepository.findByUserId as jest.Mock).mockResolvedValue(mockTickets);
 
       const stats = await ticketsService.getStats('user-id', false);
 

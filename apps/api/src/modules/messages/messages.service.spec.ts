@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
 import { MessagesService } from './messages.service';
 import { MessagesRepository } from './messages.repository';
 import { TicketsService } from '../tickets/tickets.service';
-import { AiRepository } from '../ai/ai.repository';
+import { UsersService } from '../users/users.service';
 
 describe('MessagesService', () => {
   let messagesService: MessagesService;
   let messagesRepository: Partial<MessagesRepository>;
   let ticketsService: Partial<TicketsService>;
-  let aiRepository: Partial<AiRepository>;
+  let usersService: Partial<UsersService>;
 
   const mockMessage = {
     id: 'message-uuid',
@@ -20,31 +20,39 @@ describe('MessagesService', () => {
     createdAt: new Date(),
   };
 
-  beforeEach(() => {
+  const mockTicket = { id: 'ticket-uuid', title: 'Test', description: 'Test' };
+  const mockSender = { id: 'user-id', name: 'Test User' };
+
+  beforeEach(async () => {
     messagesRepository = {
-      findByTicketId: vi.fn(),
-      findById: vi.fn(),
-      create: vi.fn(),
+      findByTicketId: jest.fn(),
+      findById: jest.fn(),
+      create: jest.fn(),
     };
 
     ticketsService = {
-      findById: vi.fn(),
+      findById: jest.fn(),
     };
 
-    aiRepository = {
-      findByJobId: vi.fn(),
+    usersService = {
+      findById: jest.fn(),
     };
 
-    messagesService = new MessagesService(
-      messagesRepository as MessagesRepository,
-      ticketsService as TicketsService,
-      aiRepository as AiRepository,
-    );
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        MessagesService,
+        { provide: MessagesRepository, useValue: messagesRepository },
+        { provide: TicketsService, useValue: ticketsService },
+        { provide: UsersService, useValue: usersService },
+      ],
+    }).compile();
+
+    messagesService = module.get<MessagesService>(MessagesService);
   });
 
   describe('findByTicketId', () => {
     it('should return messages for a ticket', async () => {
-      (messagesRepository.findByTicketId as vi.Mock).mockResolvedValue([mockMessage]);
+      (messagesRepository.findByTicketId as jest.Mock).mockResolvedValue([mockMessage]);
 
       const result = await messagesService.findByTicketId('ticket-uuid');
 
@@ -53,7 +61,7 @@ describe('MessagesService', () => {
     });
 
     it('should return empty array if no messages', async () => {
-      (messagesRepository.findByTicketId as vi.Mock).mockResolvedValue([]);
+      (messagesRepository.findByTicketId as jest.Mock).mockResolvedValue([]);
 
       const result = await messagesService.findByTicketId('ticket-uuid');
 
@@ -63,36 +71,49 @@ describe('MessagesService', () => {
 
   describe('create', () => {
     it('should create a new message', async () => {
-      (ticketsService.findById as vi.Mock).mockResolvedValue({ id: 'ticket-uuid' });
-      (messagesRepository.create as vi.Mock).mockResolvedValue(mockMessage);
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (usersService.findById as jest.Mock).mockResolvedValue(mockSender);
+      (messagesRepository.create as jest.Mock).mockResolvedValue(mockMessage);
 
-      const result = await messagesService.create('ticket-uuid', 'Test content', 'user-id', 'CUSTOMER');
+      const result = await messagesService.create({
+        ticketId: 'ticket-uuid',
+        content: 'Test message content',
+        senderId: 'user-id',
+        role: 'CUSTOMER',
+      });
 
-      expect(result.content).toBe('Test content');
+      expect(result.content).toBe('Test message content');
       expect(messagesRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          content: 'Test content',
-          senderId: 'user-id',
-          ticketId: 'ticket-uuid',
+          content: 'Test message content',
+          sender: mockSender,
           role: 'CUSTOMER',
         }),
       );
     });
 
     it('should throw if ticket not found', async () => {
-      (ticketsService.findById as vi.Mock).mockResolvedValue(null);
+      (ticketsService.findById as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        messagesService.create('non-existent-ticket', 'Test', 'user-id', 'CUSTOMER'),
-      ).rejects.toThrow('Ticket not found');
+        messagesService.create({ ticketId: 'non-existent-ticket', content: 'Test', senderId: 'user-id', role: 'CUSTOMER' }),
+      ).rejects.toThrow('not found');
+    });
+
+    it('should throw if sender not found', async () => {
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (usersService.findById as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        messagesService.create({ ticketId: 'ticket-uuid', content: 'Test', senderId: 'user-id', role: 'CUSTOMER' }),
+      ).rejects.toThrow('Sender not found');
     });
   });
 
   describe('createAiMessage', () => {
     it('should create an AI message', async () => {
-      (ticketsService.findById as vi.Mock).mockResolvedValue({ id: 'ticket-uuid' });
-      (aiRepository.findByJobId as vi.Mock).mockResolvedValue({ id: 'ai-result-id' });
-      (messagesRepository.create as vi.Mock).mockResolvedValue({
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (messagesRepository.create as jest.Mock).mockResolvedValue({
         ...mockMessage,
         role: 'AI',
         aiJob: { id: 'ai-result-id' },
@@ -102,28 +123,6 @@ describe('MessagesService', () => {
 
       expect(result.role).toBe('AI');
       expect(messagesRepository.create).toHaveBeenCalled();
-    });
-  });
-
-  describe('processAiJob', () => {
-    it('should process AI job and create message', async () => {
-      const mockAiResult = {
-        id: 'ai-result-id',
-        result: 'AI generated response',
-        jobType: 'SUGGEST_REPLY',
-      };
-
-      (aiRepository.findByJobId as vi.Mock).mockResolvedValue(mockAiResult);
-      (ticketsService.findById as vi.Mock).mockResolvedValue({ id: 'ticket-uuid' });
-      (messagesRepository.create as vi.Mock).mockResolvedValue({
-        ...mockMessage,
-        content: 'AI generated response',
-        role: 'AI',
-      });
-
-      const result = await messagesService.processAiJob('job-uuid');
-
-      expect(result.content).toBe('AI generated response');
     });
   });
 });

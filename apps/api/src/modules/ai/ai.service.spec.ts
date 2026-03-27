@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
 import { AiService } from './ai.service';
 import { AiRepository } from './ai.repository';
 import { TicketsService } from '../tickets/tickets.service';
@@ -6,6 +6,7 @@ import { MessagesService } from '../messages/messages.service';
 import { SseService } from '../sse/sse.service';
 import { ConfigService } from '@nestjs/config';
 import { AiJobType, AiJobStatus } from '@pkg/types';
+import { BullModule, getQueueToken } from '@nestjs/bull';
 
 describe('AiService', () => {
   let aiService: AiService;
@@ -14,6 +15,7 @@ describe('AiService', () => {
   let messagesService: Partial<MessagesService>;
   let sseService: Partial<SseService>;
   let configService: Partial<ConfigService>;
+  let aiQueue: any;
 
   const mockTicket = {
     id: 'ticket-uuid',
@@ -23,42 +25,59 @@ describe('AiService', () => {
     priority: 'MEDIUM',
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     aiRepository = {
-      create: vi.fn(),
-      updateByJobId: vi.fn(),
+      create: jest.fn(),
+      updateByJobId: jest.fn(),
     };
 
     ticketsService = {
-      findById: vi.fn(),
+      findById: jest.fn(),
     };
 
     messagesService = {
-      createAiMessage: vi.fn(),
+      createAiMessage: jest.fn(),
     };
 
     sseService = {
-      notify: vi.fn(),
+      notify: jest.fn(),
     };
 
     configService = {
-      get: vi.fn(),
+      get: jest.fn(),
     };
 
-    aiService = new AiService(
-      {} as any, // BullMQ queue mocked
-      aiRepository as AiRepository,
-      ticketsService as TicketsService,
-      messagesService as MessagesService,
-      sseService as SseService,
-      configService as ConfigService,
-    );
+    aiQueue = {
+      add: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        BullModule.registerQueue({
+          name: 'ai-jobs',
+        }),
+      ],
+      providers: [
+        AiService,
+        { provide: AiRepository, useValue: aiRepository },
+        { provide: TicketsService, useValue: ticketsService },
+        { provide: MessagesService, useValue: messagesService },
+        { provide: SseService, useValue: sseService },
+        { provide: ConfigService, useValue: configService },
+      ],
+    })
+      .overrideProvider(getQueueToken('ai-jobs'))
+      .useValue(aiQueue)
+      .compile();
+
+    aiService = module.get<AiService>(AiService);
   });
 
   describe('summarize', () => {
     it('should enqueue a summarize job', async () => {
-      (ticketsService.findById as vi.Mock).mockResolvedValue(mockTicket);
-      (aiRepository.create as vi.Mock).mockResolvedValue({ id: 'result-id' });
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
 
       const result = await aiService.summarize('ticket-uuid');
 
@@ -76,8 +95,9 @@ describe('AiService', () => {
 
   describe('detectPriority', () => {
     it('should enqueue a detect priority job', async () => {
-      (ticketsService.findById as vi.Mock).mockResolvedValue(mockTicket);
-      (aiRepository.create as vi.Mock).mockResolvedValue({ id: 'result-id' });
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
 
       const result = await aiService.detectPriority('ticket-uuid');
 
@@ -92,8 +112,9 @@ describe('AiService', () => {
 
   describe('suggestReply', () => {
     it('should enqueue a suggest reply job', async () => {
-      (ticketsService.findById as vi.Mock).mockResolvedValue(mockTicket);
-      (aiRepository.create as vi.Mock).mockResolvedValue({ id: 'result-id' });
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
 
       const result = await aiService.suggestReply('ticket-uuid');
 

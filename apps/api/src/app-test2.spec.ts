@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-describe('AppController', () => {
+describe('AppController DI Test', () => {
   let appController: AppController;
 
   beforeEach(async () => {
@@ -19,7 +19,11 @@ describe('AppController', () => {
     appController = module.get<AppController>(AppController);
   });
 
-  it('should return "Hello World!"', () => {
+  it('should inject appService', () => {
+    expect(appController).toBeDefined();
+  });
+
+  it('should return hello', () => {
     expect(appController.getHello()).toBe('Hello World!');
   });
 });

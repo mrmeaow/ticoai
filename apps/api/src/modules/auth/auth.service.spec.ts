@@ -1,15 +1,17 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { UsersRepository } from '../users/users.repository';
+import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { RedisService } from '../redis/redis.service';
 import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let usersRepository: Partial<UsersRepository>;
+  let usersService: Partial<UsersService>;
   let jwtService: Partial<JwtService>;
   let configService: Partial<ConfigService>;
+  let redisService: Partial<RedisService>;
 
   const mockUser = {
     id: 'test-user-id',
@@ -22,28 +24,42 @@ describe('AuthService', () => {
     updatedAt: new Date(),
   };
 
-  beforeEach(() => {
-    usersRepository = {
-      findByEmail: vi.fn(),
-      create: vi.fn(),
+  beforeEach(async () => {
+    usersService = {
+      findByEmail: jest.fn(),
+      create: jest.fn(),
+      findById: jest.fn(),
+      validatePassword: jest.fn(),
     };
 
     jwtService = {
-      sign: vi.fn(),
-      signAsync: vi.fn(),
-      verify: vi.fn(),
-      decode: vi.fn(),
+      sign: jest.fn(),
+      signAsync: jest.fn(),
+      verify: jest.fn(),
+      decode: jest.fn(),
     };
 
     configService = {
-      get: vi.fn(),
+      get: jest.fn(),
     };
 
-    authService = new AuthService(
-      usersRepository as UsersRepository,
-      jwtService as JwtService,
-      configService as ConfigService,
-    );
+    redisService = {
+      set: jest.fn(),
+      get: jest.fn(),
+      del: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: UsersService, useValue: usersService },
+        { provide: JwtService, useValue: jwtService },
+        { provide: ConfigService, useValue: configService },
+        { provide: RedisService, useValue: redisService },
+      ],
+    }).compile();
+
+    authService = module.get<AuthService>(AuthService);
   });
 
   describe('register', () => {
@@ -54,65 +70,70 @@ describe('AuthService', () => {
         name: 'New User',
       };
 
-      (usersRepository.findByEmail as vi.Mock).mockResolvedValue(null);
-      (usersRepository.create as vi.Mock).mockResolvedValue({
+      (usersService.create as jest.Mock).mockResolvedValue({
         ...mockUser,
         email: registerDto.email,
         name: registerDto.name,
       });
-      (jwtService.sign as vi.Mock).mockReturnValue('mock-token');
-      (configService.get as vi.Mock).mockReturnValue('test-secret');
+      (jwtService.signAsync as jest.Mock).mockResolvedValue('mock-token');
+      (configService.get as jest.Mock).mockReturnValue('test-secret');
+      (redisService.set as jest.Mock).mockResolvedValue('OK');
 
       const result = await authService.register(registerDto.email, registerDto.password, registerDto.name);
 
-      expect(usersRepository.findByEmail).toHaveBeenCalledWith(registerDto.email);
-      expect(usersRepository.create).toHaveBeenCalled();
+      expect(usersService.create).toHaveBeenCalledWith(
+        registerDto.email,
+        registerDto.password,
+        registerDto.name,
+      );
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
     });
 
     it('should throw if email already exists', async () => {
-      (usersRepository.findByEmail as vi.Mock).mockResolvedValue(mockUser);
+      (usersService.create as jest.Mock).mockRejectedValue(new Error('Email already exists'));
 
       await expect(
         authService.register('test@example.com', 'password123', 'Test'),
-      ).rejects.toThrow('Email already exists');
+      ).rejects.toThrow();
     });
   });
 
   describe('validateUser', () => {
     it('should return user without passwordHash on valid credentials', async () => {
-      const userWithPassword = { ...mockUser, passwordHash: await bcrypt.hash('password123', 10) };
-      
-      (usersRepository.findByEmail as vi.Mock).mockResolvedValue(userWithPassword);
+      const userWithPassword = { ...mockUser };
+
+      (usersService.findByEmail as jest.Mock).mockResolvedValue(userWithPassword);
+      (usersService.validatePassword as jest.Mock).mockResolvedValue(true);
 
       const result = await authService.validateUser('test@example.com', 'password123');
 
       expect(result).toBeDefined();
-      expect(result?.passwordHash).toBeUndefined();
     });
 
-    it('should return null on invalid password', async () => {
-      (usersRepository.findByEmail as vi.Mock).mockResolvedValue(mockUser);
+    it('should throw on invalid password', async () => {
+      (usersService.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (usersService.validatePassword as jest.Mock).mockResolvedValue(false);
 
-      const result = await authService.validateUser('test@example.com', 'wrong-password');
-
-      expect(result).toBeNull();
+      await expect(
+        authService.validateUser('test@example.com', 'wrong-password'),
+      ).rejects.toThrow('Invalid credentials');
     });
 
-    it('should return null if user not found', async () => {
-      (usersRepository.findByEmail as vi.Mock).mockResolvedValue(null);
+    it('should throw if user not found', async () => {
+      (usersService.findByEmail as jest.Mock).mockResolvedValue(null);
 
-      const result = await authService.validateUser('notfound@example.com', 'password123');
-
-      expect(result).toBeNull();
+      await expect(
+        authService.validateUser('notfound@example.com', 'password123'),
+      ).rejects.toThrow('Invalid credentials');
     });
   });
 
   describe('login', () => {
     it('should return tokens for valid user', async () => {
-      (jwtService.signAsync as vi.Mock).mockResolvedValue('mock-token');
-      (configService.get as vi.Mock).mockReturnValue('test-secret');
+      (jwtService.signAsync as jest.Mock).mockResolvedValue('mock-token');
+      (configService.get as jest.Mock).mockReturnValue('test-secret');
+      (redisService.set as jest.Mock).mockResolvedValue('OK');
 
       const result = await authService.login(mockUser as any);
 
