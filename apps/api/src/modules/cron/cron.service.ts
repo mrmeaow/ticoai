@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { TicketsService } from '../tickets/tickets.service';
+import { Ticket } from '../tickets/entities/ticket.entity';
 import { TicketStatus } from '@pkg/types';
 import { AiRepository } from '../ai/ai.repository';
 import { AiJobStatus } from '@pkg/types';
@@ -27,7 +28,7 @@ export class CronService {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const ticketsToClose = tickets.filter(
-        (ticket) => new Date(ticket.updatedAt) < sevenDaysAgo,
+        (ticket: Ticket) => new Date(ticket.updatedAt) < sevenDaysAgo,
       );
 
       for (const ticket of ticketsToClose) {

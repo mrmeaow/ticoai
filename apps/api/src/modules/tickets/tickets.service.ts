@@ -6,7 +6,7 @@ import {
 import {
   TicketsRepository,
   FindTicketsOptions,
-  FindTicketsResult,
+  PaginatedTickets,
 } from './tickets.repository';
 import { UsersService } from '../users/users.service';
 import { Ticket } from './entities/ticket.entity';
@@ -48,7 +48,7 @@ export class TicketsService {
     options: FindTicketsOptions,
     userId?: string,
     isAdmin = false,
-  ): Promise<FindTicketsResult> {
+  ): Promise<PaginatedTickets> {
     return this.ticketsRepository.findAll({
       ...options,
       userId,
