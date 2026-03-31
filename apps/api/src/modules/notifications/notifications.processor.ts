@@ -1,6 +1,9 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bullmq';
-import { NotificationsService, NotificationData } from './notifications.service';
+import {
+  NotificationsService,
+  NotificationData,
+} from './notifications.service';
 import { Logger } from '@nestjs/common';
 
 @Processor('notifications')

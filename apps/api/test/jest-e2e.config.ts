@@ -7,9 +7,7 @@ const config: Config = {
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
-  collectCoverageFrom: [
-    'src/**/*.(t|j)s',
-  ],
+  collectCoverageFrom: ['src/**/*.(t|j)s'],
   coverageDirectory: './coverage-e2e',
   testEnvironment: 'node',
   moduleNameMapper: {
@@ -22,6 +20,8 @@ const config: Config = {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
+  // Enable VM modules for dynamic imports and proper module loading
+  injectGlobals: true,
 };
 
 export default config;

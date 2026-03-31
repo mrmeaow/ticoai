@@ -33,7 +33,10 @@ async function bootstrap() {
     if (superAdminRole) {
       for (const permission of permissions) {
         try {
-          await rolesService.assignPermissionToRole(superAdminRole.id, permission.id);
+          await rolesService.assignPermissionToRole(
+            superAdminRole.id,
+            permission.id,
+          );
         } catch (e: any) {
           if (!e.message?.includes('already exists')) {
             throw e;
@@ -45,11 +48,17 @@ async function bootstrap() {
 
     if (adminRole) {
       const adminPermissions = permissions.filter(
-        (p) => !['roles:create', 'roles:delete', 'users:delete'].includes(`${p.resource}:${p.action}`),
+        (p) =>
+          !['roles:create', 'roles:delete', 'users:delete'].includes(
+            `${p.resource}:${p.action}`,
+          ),
       );
       for (const permission of adminPermissions) {
         try {
-          await rolesService.assignPermissionToRole(adminRole.id, permission.id);
+          await rolesService.assignPermissionToRole(
+            adminRole.id,
+            permission.id,
+          );
         } catch (e: any) {
           if (!e.message?.includes('already exists')) {
             throw e;
@@ -68,7 +77,10 @@ async function bootstrap() {
       );
       for (const permission of agentPermissions) {
         try {
-          await rolesService.assignPermissionToRole(agentRole.id, permission.id);
+          await rolesService.assignPermissionToRole(
+            agentRole.id,
+            permission.id,
+          );
         } catch (e: any) {
           if (!e.message?.includes('already exists')) {
             throw e;
@@ -80,11 +92,16 @@ async function bootstrap() {
 
     if (viewerRole) {
       const viewerPermissions = permissions.filter(
-        (p) => p.action === 'read' && ['tickets', 'messages', 'dashboard'].includes(p.resource),
+        (p) =>
+          p.action === 'read' &&
+          ['tickets', 'messages', 'dashboard'].includes(p.resource),
       );
       for (const permission of viewerPermissions) {
         try {
-          await rolesService.assignPermissionToRole(viewerRole.id, permission.id);
+          await rolesService.assignPermissionToRole(
+            viewerRole.id,
+            permission.id,
+          );
         } catch (e: any) {
           if (!e.message?.includes('already exists')) {
             throw e;

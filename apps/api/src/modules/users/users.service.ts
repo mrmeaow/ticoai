@@ -25,7 +25,14 @@ export class UsersService {
     return this.usersRepository.findByEmail(email);
   }
 
-  async findAll(page = 1, limit = 20): Promise<{ users: User[]; total: number }> {
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.usersRepository.findByEmailWithPassword(email);
+  }
+
+  async findAll(
+    page = 1,
+    limit = 20,
+  ): Promise<{ users: User[]; total: number }> {
     return this.usersRepository.findAll(page, limit);
   }
 
@@ -95,8 +102,11 @@ export class UsersService {
   }
 
   async assignRoles(id: string, roleNames: string[]): Promise<User> {
+    // Handle undefined/null roleNames gracefully
+    const safeRoleNames = roleNames ?? [];
+
     const roles: Role[] = [];
-    for (const roleName of roleNames) {
+    for (const roleName of safeRoleNames) {
       const role = await this.rolesService.findRoleByName(roleName);
       if (!role) {
         throw new BadRequestException(`Role '${roleName}' not found`);

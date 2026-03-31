@@ -5,10 +5,7 @@ import { UsersModule } from '../users/users.module';
 import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [
-    forwardRef(() => UsersModule),
-    RedisModule,
-  ],
+  imports: [forwardRef(() => UsersModule), RedisModule],
   controllers: [AuthController],
   providers: [AuthService],
   exports: [AuthService],

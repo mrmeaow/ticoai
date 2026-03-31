@@ -68,8 +68,9 @@ describe('TicketsService', () => {
     it('should throw NotFoundException if ticket not found', async () => {
       (ticketsRepository.findById as jest.Mock).mockResolvedValue(null);
 
-      await expect(ticketsService.findById('non-existent-id'))
-        .rejects.toThrow('Ticket not found');
+      await expect(ticketsService.findById('non-existent-id')).rejects.toThrow(
+        'Ticket not found',
+      );
     });
   });
 
@@ -98,7 +99,11 @@ describe('TicketsService', () => {
 
       (ticketsRepository.findAll as jest.Mock).mockResolvedValue(mockResult);
 
-      await ticketsService.findAll({ status: TicketStatus.OPEN }, 'user-id', false);
+      await ticketsService.findAll(
+        { status: TicketStatus.OPEN },
+        'user-id',
+        false,
+      );
 
       expect(ticketsRepository.findAll).toHaveBeenCalledWith(
         expect.objectContaining({ status: TicketStatus.OPEN }),
@@ -114,7 +119,11 @@ describe('TicketsService', () => {
 
       (ticketsRepository.findAll as jest.Mock).mockResolvedValue(mockResult);
 
-      await ticketsService.findAll({ priority: TicketPriority.HIGH }, 'user-id', false);
+      await ticketsService.findAll(
+        { priority: TicketPriority.HIGH },
+        'user-id',
+        false,
+      );
 
       expect(ticketsRepository.findAll).toHaveBeenCalledWith(
         expect.objectContaining({ priority: TicketPriority.HIGH }),
@@ -131,7 +140,11 @@ describe('TicketsService', () => {
         createdById: 'user-id',
       };
 
-      const mockCreator = { id: 'user-id', name: 'Test User', email: 'test@example.com' };
+      const mockCreator = {
+        id: 'user-id',
+        name: 'Test User',
+        email: 'test@example.com',
+      };
       (usersService.findById as jest.Mock).mockResolvedValue(mockCreator);
       (ticketsRepository.create as jest.Mock).mockResolvedValue({
         ...mockTicket,
@@ -154,6 +167,64 @@ describe('TicketsService', () => {
         }),
       );
     });
+
+    it('should create ticket with assigneeId successfully', async () => {
+      const createDto = {
+        title: 'New Ticket',
+        description: 'New Description',
+        priority: TicketPriority.HIGH,
+        createdById: 'user-id',
+        assigneeId: 'assignee-id',
+      };
+
+      const mockCreator = {
+        id: 'user-id',
+        name: 'Test User',
+        email: 'test@example.com',
+      };
+      const mockAssignee = {
+        id: 'assignee-id',
+        name: 'Assignee User',
+        email: 'assignee@example.com',
+      };
+
+      (usersService.findById as jest.Mock)
+        .mockResolvedValueOnce(mockAssignee)
+        .mockResolvedValueOnce(mockCreator);
+      (ticketsRepository.create as jest.Mock).mockResolvedValue({
+        ...mockTicket,
+        title: createDto.title,
+        description: createDto.description,
+        priority: createDto.priority,
+        createdBy: mockCreator,
+        assignee: mockAssignee,
+      });
+
+      const result = await ticketsService.create(createDto);
+
+      expect(result.assignee).toEqual(mockAssignee);
+      expect(ticketsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assignee: mockAssignee,
+        }),
+      );
+    });
+
+    it('should throw NotFoundException when assignee not found during create', async () => {
+      const createDto = {
+        title: 'New Ticket',
+        description: 'New Description',
+        priority: TicketPriority.HIGH,
+        createdById: 'user-id',
+        assigneeId: 'non-existent-assignee',
+      };
+
+      (usersService.findById as jest.Mock).mockResolvedValueOnce(null);
+
+      await expect(ticketsService.create(createDto)).rejects.toThrow(
+        'Assignee not found',
+      );
+    });
   });
 
   describe('update', () => {
@@ -174,7 +245,47 @@ describe('TicketsService', () => {
       const result = await ticketsService.update('ticket-uuid', updateDto);
 
       expect(result.status).toBe(TicketStatus.IN_PROGRESS);
-      expect(ticketsRepository.update).toHaveBeenCalledWith('ticket-uuid', updateDto);
+      expect(ticketsRepository.update).toHaveBeenCalledWith(
+        'ticket-uuid',
+        updateDto,
+      );
+    });
+
+    it('should update ticket with assigneeId successfully', async () => {
+      const updateDto = {
+        assigneeId: 'new-assignee-id',
+      };
+
+      const mockAssignee = {
+        id: 'new-assignee-id',
+        name: 'New Assignee',
+        email: 'newassignee@example.com',
+      };
+      (usersService.findById as jest.Mock).mockResolvedValue(mockAssignee);
+      (ticketsRepository.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (ticketsRepository.update as jest.Mock).mockResolvedValue({
+        ...mockTicket,
+        assignee: mockAssignee,
+      });
+
+      const result = await ticketsService.update('ticket-uuid', updateDto);
+
+      expect(ticketsRepository.update).toHaveBeenCalledWith('ticket-uuid', {
+        assigneeId: 'new-assignee-id',
+      });
+    });
+
+    it('should throw NotFoundException when assignee not found during update', async () => {
+      const updateDto = {
+        assigneeId: 'non-existent-assignee',
+      };
+
+      (ticketsRepository.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (usersService.findById as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        ticketsService.update('ticket-uuid', updateDto),
+      ).rejects.toThrow('Assignee not found');
     });
   });
 
@@ -197,7 +308,10 @@ describe('TicketsService', () => {
         { ...mockTicket, priority: TicketPriority.HIGH },
       ];
 
-      (ticketsRepository.findByUserId as jest.Mock).mockResolvedValue(mockTickets);
+      (ticketsRepository.findByUserId as jest.Mock).mockResolvedValue(
+        mockTickets,
+      );
+      (ticketsRepository.findRecent as jest.Mock).mockResolvedValue([]);
 
       const stats = await ticketsService.getStats('user-id', false);
 
@@ -206,6 +320,63 @@ describe('TicketsService', () => {
       expect(stats.inProgress).toBeGreaterThanOrEqual(0);
       expect(stats.resolved).toBeGreaterThanOrEqual(0);
       expect(stats.highPriority).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should return zeros when no tickets exist', async () => {
+      (ticketsRepository.findByUserId as jest.Mock).mockResolvedValue([]);
+      (ticketsRepository.findRecent as jest.Mock).mockResolvedValue([]);
+
+      const stats = await ticketsService.getStats('user-id', false);
+
+      expect(stats.total).toBe(0);
+      expect(stats.open).toBe(0);
+      expect(stats.inProgress).toBe(0);
+      expect(stats.resolved).toBe(0);
+      expect(stats.highPriority).toBe(0);
+    });
+
+    it('should count tickets across all statuses correctly', async () => {
+      const mockTickets = [
+        {
+          ...mockTicket,
+          status: TicketStatus.OPEN,
+          priority: TicketPriority.HIGH,
+        },
+        {
+          ...mockTicket,
+          status: TicketStatus.OPEN,
+          priority: TicketPriority.LOW,
+        },
+        {
+          ...mockTicket,
+          status: TicketStatus.IN_PROGRESS,
+          priority: TicketPriority.MEDIUM,
+        },
+        {
+          ...mockTicket,
+          status: TicketStatus.RESOLVED,
+          priority: TicketPriority.HIGH,
+        },
+        {
+          ...mockTicket,
+          status: TicketStatus.CLOSED,
+          priority: TicketPriority.LOW,
+        },
+      ];
+
+      (ticketsRepository.findByUserId as jest.Mock).mockResolvedValue(
+        mockTickets,
+      );
+      (ticketsRepository.findRecent as jest.Mock).mockResolvedValue([]);
+
+      const stats = await ticketsService.getStats('user-id', false);
+
+      expect(stats.total).toBe(5);
+      expect(stats.open).toBe(2);
+      expect(stats.inProgress).toBe(1);
+      expect(stats.resolved).toBe(1);
+      expect(stats.closed).toBe(1);
+      expect(stats.highPriority).toBe(2);
     });
   });
 });

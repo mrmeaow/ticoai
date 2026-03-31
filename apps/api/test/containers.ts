@@ -14,13 +14,14 @@ export async function startTestContainers(): Promise<TestContainers> {
     .withPassword('test')
     .start();
 
-  const redis = await new RedisContainer('redis:7-alpine')
-    .start();
+  const redis = await new RedisContainer('redis:7-alpine').start();
 
   return { postgres, redis };
 }
 
-export async function stopTestContainers(containers: TestContainers): Promise<void> {
+export async function stopTestContainers(
+  containers: TestContainers,
+): Promise<void> {
   await containers.postgres.stop();
   await containers.redis.stop();
 }

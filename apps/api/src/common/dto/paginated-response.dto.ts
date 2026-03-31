@@ -10,6 +10,9 @@ export class PaginatedResponseDto<T> {
   @ApiProperty({ description: 'Whether there are more items', example: true })
   hasMore: boolean;
 
-  @ApiPropertyOptional({ description: 'Cursor for next page (UUID format)', format: 'uuid' })
+  @ApiPropertyOptional({
+    description: 'Cursor for next page (UUID format)',
+    format: 'uuid',
+  })
   nextCursor?: string;
 }

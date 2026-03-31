@@ -21,11 +21,30 @@ export class UsersRepository {
     return this.userRepository.findOne({
       where: { email },
       relations: ['roles'],
-      select: ['id', 'email', 'name', 'passwordHash', 'isActive', 'createdAt', 'updatedAt', 'deletedAt'],
     });
   }
 
-  async findAll(page = 1, limit = 20): Promise<{ users: User[]; total: number }> {
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      relations: ['roles'],
+      select: [
+        'id',
+        'email',
+        'name',
+        'passwordHash',
+        'isActive',
+        'createdAt',
+        'updatedAt',
+        'deletedAt',
+      ],
+    });
+  }
+
+  async findAll(
+    page = 1,
+    limit = 20,
+  ): Promise<{ users: User[]; total: number }> {
     const [users, total] = await this.userRepository.findAndCount({
       relations: ['roles'],
       skip: (page - 1) * limit,
@@ -40,8 +59,15 @@ export class UsersRepository {
   }
 
   async update(id: string, userData: Partial<User>): Promise<User | null> {
-    await this.userRepository.update(id, userData);
-    return this.findById(id);
+    // Find existing user with roles
+    const existingUser = await this.findById(id);
+    if (!existingUser) return null;
+
+    // Merge the userData into existing user
+    Object.assign(existingUser, userData);
+
+    // Save will handle the many-to-many relation properly
+    return this.userRepository.save(existingUser);
   }
 
   async delete(id: string): Promise<void> {

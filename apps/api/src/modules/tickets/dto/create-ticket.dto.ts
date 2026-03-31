@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { TicketPriority } from '@pkg/types';
 
 export class CreateTicketDto {
@@ -16,7 +22,8 @@ export class CreateTicketDto {
 
   @ApiProperty({
     description: 'Detailed description of the issue or request',
-    example: 'Customer reports being unable to access the dashboard after successful login. Error message appears: "Session expired".',
+    example:
+      'Customer reports being unable to access the dashboard after successful login. Error message appears: "Session expired".',
     minLength: 10,
   })
   @IsString()
@@ -34,7 +41,8 @@ export class CreateTicketDto {
   priority?: TicketPriority;
 
   @ApiPropertyOptional({
-    description: 'Assignee user ID (admin only - assigns ticket to another user)',
+    description:
+      'Assignee user ID (admin only - assigns ticket to another user)',
     format: 'uuid',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })

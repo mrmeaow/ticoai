@@ -36,7 +36,10 @@ async function bootstrap() {
 
   // CORS - allow all origins in development
   app.enableCors({
-    origin: nodeEnv === 'development' ? 'http://localhost:4200' : configService.get<string>('web.url'),
+    origin:
+      nodeEnv === 'development'
+        ? 'http://localhost:4200'
+        : configService.get<string>('web.url'),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -68,7 +71,9 @@ async function bootstrap() {
       if (req.url.startsWith(apiPrefix)) {
         return next();
       }
-      res.sendFile('index.html', { root: join(__dirname, '..', '..', 'apps', 'web', 'browser') });
+      res.sendFile('index.html', {
+        root: join(__dirname, '..', '..', 'apps', 'web', 'browser'),
+      });
     });
   }
 

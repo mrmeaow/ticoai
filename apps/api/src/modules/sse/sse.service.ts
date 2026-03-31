@@ -22,7 +22,9 @@ export class SseService {
   addClient(jobId: string): Observable<SseJobResult> {
     const existingClient = this.clients.get(jobId);
     if (existingClient) {
-      this.logger.warn(`Client already subscribed to job ${jobId}, reusing subscription`);
+      this.logger.warn(
+        `Client already subscribed to job ${jobId}, reusing subscription`,
+      );
       return existingClient.subject.asObservable().pipe(
         filter((message) => message !== null),
         share(),
@@ -34,7 +36,9 @@ export class SseService {
     const client: SseClient = { jobId, subject, disconnect$ };
 
     this.clients.set(jobId, client);
-    this.logger.log(`Client subscribed to job ${jobId}. Total clients: ${this.clients.size}`);
+    this.logger.log(
+      `Client subscribed to job ${jobId}. Total clients: ${this.clients.size}`,
+    );
 
     return subject.asObservable().pipe(
       filter((message) => message !== null),
@@ -50,14 +54,18 @@ export class SseService {
       client.disconnect$.complete();
       client.subject.complete();
       this.clients.delete(jobId);
-      this.logger.log(`Client unsubscribed from job ${jobId}. Remaining clients: ${this.clients.size}`);
+      this.logger.log(
+        `Client unsubscribed from job ${jobId}. Remaining clients: ${this.clients.size}`,
+      );
     }
   }
 
   notify(jobId: string, data: SseJobResult): void {
     const client = this.clients.get(jobId);
     if (client) {
-      this.logger.log(`Notifying client of job ${jobId} status: ${data.status}`);
+      this.logger.log(
+        `Notifying client of job ${jobId} status: ${data.status}`,
+      );
       client.subject.next(data);
 
       // Auto-disconnect on final states
@@ -65,7 +73,9 @@ export class SseService {
         this.removeClient(jobId);
       }
     } else {
-      this.logger.debug(`No client subscribed to job ${jobId}, result will be available on next poll`);
+      this.logger.debug(
+        `No client subscribed to job ${jobId}, result will be available on next poll`,
+      );
     }
   }
 

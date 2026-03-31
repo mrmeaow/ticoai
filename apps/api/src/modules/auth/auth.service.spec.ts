@@ -27,6 +27,9 @@ describe('AuthService', () => {
   beforeEach(async () => {
     usersService = {
       findByEmail: jest.fn(),
+      findByEmailWithPassword: jest.fn(),
+      findByEmailWithPassword: jest.fn(),
+      findByEmailWithPassword: jest.fn(),
       create: jest.fn(),
       findById: jest.fn(),
       validatePassword: jest.fn(),
@@ -36,6 +39,7 @@ describe('AuthService', () => {
       sign: jest.fn(),
       signAsync: jest.fn(),
       verify: jest.fn(),
+      verifyAsync: jest.fn(),
       decode: jest.fn(),
     };
 
@@ -79,7 +83,11 @@ describe('AuthService', () => {
       (configService.get as jest.Mock).mockReturnValue('test-secret');
       (redisService.set as jest.Mock).mockResolvedValue('OK');
 
-      const result = await authService.register(registerDto.email, registerDto.password, registerDto.name);
+      const result = await authService.register(
+        registerDto.email,
+        registerDto.password,
+        registerDto.name,
+      );
 
       expect(usersService.create).toHaveBeenCalledWith(
         registerDto.email,
@@ -91,7 +99,9 @@ describe('AuthService', () => {
     });
 
     it('should throw if email already exists', async () => {
-      (usersService.create as jest.Mock).mockRejectedValue(new Error('Email already exists'));
+      (usersService.create as jest.Mock).mockRejectedValue(
+        new Error('Email already exists'),
+      );
 
       await expect(
         authService.register('test@example.com', 'password123', 'Test'),
@@ -103,16 +113,23 @@ describe('AuthService', () => {
     it('should return user without passwordHash on valid credentials', async () => {
       const userWithPassword = { ...mockUser };
 
-      (usersService.findByEmail as jest.Mock).mockResolvedValue(userWithPassword);
+      (usersService.findByEmailWithPassword as jest.Mock).mockResolvedValue(
+        userWithPassword,
+      );
       (usersService.validatePassword as jest.Mock).mockResolvedValue(true);
 
-      const result = await authService.validateUser('test@example.com', 'password123');
+      const result = await authService.validateUser(
+        'test@example.com',
+        'password123',
+      );
 
       expect(result).toBeDefined();
     });
 
     it('should throw on invalid password', async () => {
-      (usersService.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (usersService.findByEmailWithPassword as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
       (usersService.validatePassword as jest.Mock).mockResolvedValue(false);
 
       await expect(
@@ -121,7 +138,9 @@ describe('AuthService', () => {
     });
 
     it('should throw if user not found', async () => {
-      (usersService.findByEmail as jest.Mock).mockResolvedValue(null);
+      (usersService.findByEmailWithPassword as jest.Mock).mockResolvedValue(
+        null,
+      );
 
       await expect(
         authService.validateUser('notfound@example.com', 'password123'),
@@ -139,6 +158,107 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
+    });
+  });
+
+  describe('refreshToken', () => {
+    it('should refresh tokens successfully', async () => {
+      const decodedToken = {
+        sub: 'test-user-id',
+        email: 'test@example.com',
+      };
+
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue(decodedToken);
+      (redisService.get as jest.Mock).mockResolvedValue('valid-refresh-token');
+      (usersService.findById as jest.Mock).mockResolvedValue(mockUser);
+      (jwtService.signAsync as jest.Mock).mockResolvedValue('new-access-token');
+      (jwtService.signAsync as jest.Mock).mockResolvedValue(
+        'new-refresh-token',
+      );
+      (configService.get as jest.Mock).mockReturnValue('test-secret');
+      (redisService.set as jest.Mock).mockResolvedValue('OK');
+
+      const result = await authService.refreshToken('valid-refresh-token');
+
+      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('refreshToken');
+      expect(redisService.get).toHaveBeenCalledWith('refresh:test-user-id');
+      expect(usersService.findById).toHaveBeenCalledWith(decodedToken.sub);
+    });
+
+    it('should throw on expired token', async () => {
+      (jwtService.verifyAsync as jest.Mock).mockRejectedValue(
+        new Error('jwt expired'),
+      );
+
+      await expect(authService.refreshToken('expired-token')).rejects.toThrow(
+        'Invalid refresh token',
+      );
+    });
+
+    it('should throw on token mismatch with Redis', async () => {
+      const decodedToken = {
+        sub: 'test-user-id',
+        email: 'test@example.com',
+      };
+
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue(decodedToken);
+      (redisService.get as jest.Mock).mockResolvedValue('different-token');
+
+      await expect(
+        authService.refreshToken('mismatched-token'),
+      ).rejects.toThrow('Invalid refresh token');
+    });
+
+    it('should throw on user not found during refresh', async () => {
+      const decodedToken = {
+        sub: 'non-existent-user-id',
+        email: 'test@example.com',
+      };
+
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue(decodedToken);
+      (redisService.get as jest.Mock).mockResolvedValue('valid-refresh-token');
+      (usersService.findById as jest.Mock).mockResolvedValue(null);
+
+      await expect(authService.refreshToken('valid-token')).rejects.toThrow(
+        'Invalid refresh token',
+      );
+    });
+  });
+
+  describe('logout', () => {
+    it('should logout successfully', async () => {
+      (redisService.del as jest.Mock).mockResolvedValue(1);
+
+      await authService.logout('test-user-id');
+
+      expect(redisService.del).toHaveBeenCalledWith('refresh:test-user-id');
+    });
+  });
+
+  describe('parseTtlToSeconds', () => {
+    it('should parse seconds (s)', () => {
+      expect((authService as any).parseTtlToSeconds('30s')).toBe(30);
+    });
+
+    it('should parse minutes (m)', () => {
+      expect((authService as any).parseTtlToSeconds('5m')).toBe(300);
+    });
+
+    it('should parse hours (h)', () => {
+      expect((authService as any).parseTtlToSeconds('2h')).toBe(7200);
+    });
+
+    it('should parse days (d)', () => {
+      expect((authService as any).parseTtlToSeconds('7d')).toBe(604800);
+    });
+
+    it('should return default for invalid format', () => {
+      expect((authService as any).parseTtlToSeconds('invalid')).toBe(604800);
+    });
+
+    it('should return default for unsupported unit', () => {
+      expect((authService as any).parseTtlToSeconds('30w')).toBe(604800);
     });
   });
 });

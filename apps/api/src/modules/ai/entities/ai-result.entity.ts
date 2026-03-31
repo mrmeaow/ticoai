@@ -37,7 +37,9 @@ export class AiResult {
   @Column()
   jobId: string;
 
-  @ManyToOne(() => Ticket, (ticket) => ticket.aiResults, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Ticket, (ticket) => ticket.aiResults, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'ticketId' })
   ticket: Ticket;
 

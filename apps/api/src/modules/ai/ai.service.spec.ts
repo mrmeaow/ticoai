@@ -37,6 +37,7 @@ describe('AiService', () => {
 
     messagesService = {
       createAiMessage: jest.fn(),
+      findByTicketId: jest.fn(),
     };
 
     sseService = {
@@ -89,7 +90,50 @@ describe('AiService', () => {
           status: AiJobStatus.PENDING,
         }),
       );
-      expect(sseService.notify).toHaveBeenCalledWith(expect.any(String), { status: 'pending' });
+      expect(sseService.notify).toHaveBeenCalledWith(expect.any(String), {
+        status: 'pending',
+      });
+    });
+
+    it('should create AI job result in repository with ticket object', async () => {
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
+
+      await aiService.summarize('ticket-uuid');
+
+      expect(aiRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          jobType: AiJobType.SUMMARIZE,
+          ticket: mockTicket,
+        }),
+      );
+    });
+
+    it('should notify SSE with pending status', async () => {
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
+
+      await aiService.summarize('ticket-uuid');
+
+      expect(sseService.notify).toHaveBeenCalledTimes(1);
+    });
+
+    it('should add job to queue with process-ai-job name', async () => {
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
+
+      await aiService.summarize('ticket-uuid');
+
+      expect(aiQueue.add).toHaveBeenCalledWith(
+        'process-ai-job',
+        expect.objectContaining({
+          type: AiJobType.SUMMARIZE,
+        }),
+        expect.any(Object),
+      );
     });
   });
 
@@ -108,6 +152,22 @@ describe('AiService', () => {
         }),
       );
     });
+
+    it('should add job to ai-queue with correct job type', async () => {
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
+
+      await aiService.detectPriority('ticket-uuid');
+
+      expect(aiQueue.add).toHaveBeenCalledWith(
+        'process-ai-job',
+        expect.objectContaining({
+          type: AiJobType.DETECT_PRIORITY,
+        }),
+        expect.any(Object),
+      );
+    });
   });
 
   describe('suggestReply', () => {
@@ -123,6 +183,22 @@ describe('AiService', () => {
         expect.objectContaining({
           jobType: AiJobType.SUGGEST_REPLY,
         }),
+      );
+    });
+
+    it('should verify suggestReply job data structure', async () => {
+      (ticketsService.findById as jest.Mock).mockResolvedValue(mockTicket);
+      (aiRepository.create as jest.Mock).mockResolvedValue({ id: 'result-id' });
+      (aiQueue.add as jest.Mock).mockResolvedValue({ id: 'job-id' });
+
+      await aiService.suggestReply('ticket-uuid');
+
+      expect(aiQueue.add).toHaveBeenCalledWith(
+        'process-ai-job',
+        expect.objectContaining({
+          type: AiJobType.SUGGEST_REPLY,
+        }),
+        expect.any(Object),
       );
     });
   });
@@ -163,6 +239,52 @@ describe('AiService', () => {
       );
 
       expect(prompt).toContain('Draft a helpful, professional reply');
+    });
+
+    it('should include ticket description in summarize prompt', () => {
+      const prompt = (aiService as any).buildPrompt(
+        AiJobType.SUMMARIZE,
+        mockTicket,
+        [{ role: 'CUSTOMER', content: 'Help!' }],
+      );
+
+      expect(prompt).toContain(mockTicket.description);
+    });
+
+    it('should format messages correctly for suggest reply', () => {
+      const messages = [
+        { role: 'CUSTOMER', content: 'First message' },
+        { role: 'AGENT', content: 'Agent response' },
+      ];
+
+      const prompt = (aiService as any).buildPrompt(
+        AiJobType.SUGGEST_REPLY,
+        mockTicket,
+        messages,
+      );
+
+      expect(prompt).toContain('First message');
+      expect(prompt).toContain('Agent response');
+    });
+
+    it('should include ticket title in summarize prompt', () => {
+      const prompt = (aiService as any).buildPrompt(
+        AiJobType.SUMMARIZE,
+        mockTicket,
+        [],
+      );
+
+      expect(prompt).toContain(mockTicket.title);
+    });
+
+    it('should include ticket priority in detect priority prompt', () => {
+      const prompt = (aiService as any).buildPrompt(
+        AiJobType.DETECT_PRIORITY,
+        mockTicket,
+        [],
+      );
+
+      expect(prompt).toContain(mockTicket.priority);
     });
   });
 });

@@ -27,7 +27,10 @@ export class UsersController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ): Promise<{ users: User[]; total: number }> {
-    return this.usersService.findAll(parseInt(page.toString()), parseInt(limit.toString()));
+    return this.usersService.findAll(
+      parseInt(page.toString()),
+      parseInt(limit.toString()),
+    );
   }
 
   @Get('me')

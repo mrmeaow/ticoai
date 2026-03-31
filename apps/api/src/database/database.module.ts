@@ -15,16 +15,31 @@ import { AiResult } from '../modules/ai/entities/ai-result.entity';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         // Always read from environment variables directly for test compatibility
-        const nodeEnv = process.env.NODE_ENV || configService.get<string>('app.nodeEnv') || 'development';
+        const nodeEnv =
+          process.env.NODE_ENV ||
+          configService.get<string>('app.nodeEnv') ||
+          'development';
         const isTest = nodeEnv === 'test';
-        
+
         return {
           type: 'postgres',
-          host: process.env.DB_HOST || configService.get<string>('database.host') || 'localhost',
+          host:
+            process.env.DB_HOST ||
+            configService.get<string>('database.host') ||
+            'localhost',
           port: parseInt(process.env.DB_PORT || '5432', 10),
-          username: process.env.DB_USERNAME || configService.get<string>('database.username') || 'ticoai',
-          password: process.env.DB_PASSWORD || configService.get<string>('database.password') || 'ticoai_secret',
-          database: process.env.DB_DATABASE || configService.get<string>('database.database') || 'ticoai',
+          username:
+            process.env.DB_USERNAME ||
+            configService.get<string>('database.username') ||
+            'ticoai',
+          password:
+            process.env.DB_PASSWORD ||
+            configService.get<string>('database.password') ||
+            'ticoai_secret',
+          database:
+            process.env.DB_DATABASE ||
+            configService.get<string>('database.database') ||
+            'ticoai',
           entities: [
             User,
             Role,

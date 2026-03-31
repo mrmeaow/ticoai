@@ -28,15 +28,21 @@ export class AiService {
     private readonly configService: ConfigService,
   ) {}
 
-  async summarize(ticketId: string): Promise<{ jobId: string; resultId: string }> {
+  async summarize(
+    ticketId: string,
+  ): Promise<{ jobId: string; resultId: string }> {
     return this.enqueueAiJob(ticketId, AiJobType.SUMMARIZE);
   }
 
-  async detectPriority(ticketId: string): Promise<{ jobId: string; resultId: string }> {
+  async detectPriority(
+    ticketId: string,
+  ): Promise<{ jobId: string; resultId: string }> {
     return this.enqueueAiJob(ticketId, AiJobType.DETECT_PRIORITY);
   }
 
-  async suggestReply(ticketId: string): Promise<{ jobId: string; resultId: string }> {
+  async suggestReply(
+    ticketId: string,
+  ): Promise<{ jobId: string; resultId: string }> {
     return this.enqueueAiJob(ticketId, AiJobType.SUGGEST_REPLY);
   }
 
@@ -55,12 +61,16 @@ export class AiService {
       ticket,
     });
 
-    await this.aiQueue.add('process-ai-job', {
-      jobId,
-      resultId: aiResult.id,
-      ticketId,
-      type,
-    } as AiJobData, { jobId });
+    await this.aiQueue.add(
+      'process-ai-job',
+      {
+        jobId,
+        resultId: aiResult.id,
+        ticketId,
+        type,
+      } as AiJobData,
+      { jobId },
+    );
 
     // Notify SSE clients that job is pending
     this.sseService.notify(jobId, { status: 'pending' });
@@ -72,7 +82,9 @@ export class AiService {
     const { jobId, resultId, ticketId, type } = data;
 
     try {
-      await this.aiRepository.updateByJobId(jobId, { status: AiJobStatus.PROCESSING });
+      await this.aiRepository.updateByJobId(jobId, {
+        status: AiJobStatus.PROCESSING,
+      });
 
       // Notify SSE clients that job is processing
       this.sseService.notify(jobId, { status: 'processing' });
@@ -97,7 +109,8 @@ export class AiService {
         result,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
 
       await this.aiRepository.updateByJobId(jobId, {
         status: AiJobStatus.FAILED,
@@ -113,11 +126,7 @@ export class AiService {
     }
   }
 
-  private buildPrompt(
-    type: AiJobType,
-    ticket: any,
-    messages: any[],
-  ): string {
+  private buildPrompt(type: AiJobType, ticket: any, messages: any[]): string {
     const systemPrompt = 'You are a helpful customer support assistant.';
 
     let userPrompt = '';
@@ -141,8 +150,14 @@ export class AiService {
   }
 
   private async callLmStudio(prompt: string): Promise<string> {
-    const lmStudioUrl = this.configService.get<string>('lmstudio.url', 'http://localhost:1234');
-    const model = this.configService.get<string>('lmstudio.model', 'local-model');
+    const lmStudioUrl = this.configService.get<string>(
+      'lmstudio.url',
+      'http://localhost:1234',
+    );
+    const model = this.configService.get<string>(
+      'lmstudio.model',
+      'local-model',
+    );
 
     try {
       const response = await fetch(`${lmStudioUrl}/v1/chat/completions`, {
@@ -151,7 +166,10 @@ export class AiService {
         body: JSON.stringify({
           model,
           messages: [
-            { role: 'system', content: 'You are a helpful customer support assistant.' },
+            {
+              role: 'system',
+              content: 'You are a helpful customer support assistant.',
+            },
             { role: 'user', content: prompt },
           ],
           max_tokens: 500,

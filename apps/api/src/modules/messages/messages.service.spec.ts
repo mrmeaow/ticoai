@@ -52,7 +52,9 @@ describe('MessagesService', () => {
 
   describe('findByTicketId', () => {
     it('should return messages for a ticket', async () => {
-      (messagesRepository.findByTicketId as jest.Mock).mockResolvedValue([mockMessage]);
+      (messagesRepository.findByTicketId as jest.Mock).mockResolvedValue([
+        mockMessage,
+      ]);
 
       const result = await messagesService.findByTicketId('ticket-uuid');
 
@@ -96,7 +98,12 @@ describe('MessagesService', () => {
       (ticketsService.findById as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        messagesService.create({ ticketId: 'non-existent-ticket', content: 'Test', senderId: 'user-id', role: 'CUSTOMER' }),
+        messagesService.create({
+          ticketId: 'non-existent-ticket',
+          content: 'Test',
+          senderId: 'user-id',
+          role: 'CUSTOMER',
+        }),
       ).rejects.toThrow('not found');
     });
 
@@ -105,7 +112,12 @@ describe('MessagesService', () => {
       (usersService.findById as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        messagesService.create({ ticketId: 'ticket-uuid', content: 'Test', senderId: 'user-id', role: 'CUSTOMER' }),
+        messagesService.create({
+          ticketId: 'ticket-uuid',
+          content: 'Test',
+          senderId: 'user-id',
+          role: 'CUSTOMER',
+        }),
       ).rejects.toThrow('Sender not found');
     });
   });
@@ -119,7 +131,11 @@ describe('MessagesService', () => {
         aiJob: { id: 'ai-result-id' },
       });
 
-      const result = await messagesService.createAiMessage('ticket-uuid', 'AI response', 'job-uuid');
+      const result = await messagesService.createAiMessage(
+        'ticket-uuid',
+        'AI response',
+        'job-uuid',
+      );
 
       expect(result.role).toBe('AI');
       expect(messagesRepository.create).toHaveBeenCalled();
