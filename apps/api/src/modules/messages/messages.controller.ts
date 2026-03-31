@@ -7,7 +7,14 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiProperty,
+} from '@nestjs/swagger';
+import { IsString, MinLength } from 'class-validator';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
@@ -15,6 +22,17 @@ import { Permissions } from '../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Message } from './entities/message.entity';
 import { MessageRole } from '@pkg/types';
+
+export class CreateMessageDto {
+  @ApiProperty({
+    description: 'Message content',
+    example: 'Hello, I need help with my order.',
+    minLength: 1,
+  })
+  @IsString()
+  @MinLength(1)
+  content: string;
+}
 
 @Controller('tickets/:ticketId/messages')
 @ApiTags('Messages')
@@ -27,9 +45,7 @@ export class MessagesController {
   @ApiOperation({ summary: 'Get all messages in a ticket' })
   @ApiParam({ name: 'ticketId', description: 'Ticket ID' })
   @ApiResponse({ status: 200, type: [Message] })
-  async findByTicket(
-    @Param('ticketId') ticketId: string,
-  ): Promise<Message[]> {
+  async findByTicket(@Param('ticketId') ticketId: string): Promise<Message[]> {
     return this.messagesService.findByTicketId(ticketId);
   }
 
@@ -40,7 +56,7 @@ export class MessagesController {
   @ApiResponse({ status: 201, type: Message })
   async create(
     @Param('ticketId') ticketId: string,
-    @Body() body: { content: string },
+    @Body() body: CreateMessageDto,
     @CurrentUser('id') senderId: string,
   ): Promise<Message> {
     return this.messagesService.create({

@@ -44,15 +44,50 @@ export class TicketsController {
   @Permissions('tickets:read')
   @ApiOperation({
     summary: 'List all tickets',
-    description: 'Returns a paginated list of tickets with optional filters. Agents see only their assigned tickets, admins see all tickets.',
+    description:
+      'Returns a paginated list of tickets with optional filters. Agents see only their assigned tickets, admins see all tickets.',
   })
-  @ApiQuery({ name: 'status', required: false, enum: TicketStatus, description: 'Filter by status' })
-  @ApiQuery({ name: 'priority', required: false, enum: TicketPriority, description: 'Filter by priority' })
-  @ApiQuery({ name: 'assigneeId', required: false, description: 'Filter by assignee ID (UUID)' })
-  @ApiQuery({ name: 'search', required: false, description: 'Free-text search in title and description' })
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1, description: 'Page number' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 20, description: 'Items per page' })
-  @ApiQuery({ name: 'cursor', required: false, description: 'Cursor for pagination (UUID of last item from previous page)' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: TicketStatus,
+    description: 'Filter by status',
+  })
+  @ApiQuery({
+    name: 'priority',
+    required: false,
+    enum: TicketPriority,
+    description: 'Filter by priority',
+  })
+  @ApiQuery({
+    name: 'assigneeId',
+    required: false,
+    description: 'Filter by assignee ID (UUID)',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Free-text search in title and description',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    example: 1,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 20,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: 'Cursor for pagination (UUID of last item from previous page)',
+  })
   @ApiResponse({
     status: 200,
     description: 'List of tickets retrieved successfully',
@@ -101,7 +136,8 @@ export class TicketsController {
   @Permissions('tickets:read')
   @ApiOperation({
     summary: 'Get ticket by ID',
-    description: 'Retrieves a single ticket by its unique identifier including messages and AI results.',
+    description:
+      'Retrieves a single ticket by its unique identifier including messages and AI results.',
   })
   @ApiParam({
     name: 'id',
@@ -134,7 +170,8 @@ export class TicketsController {
         value: {
           statusCode: 404,
           error: 'Not Found',
-          message: 'Ticket with ID 123e4567-e89b-12d3-a456-426614174000 not found',
+          message:
+            'Ticket with ID 123e4567-e89b-12d3-a456-426614174000 not found',
           timestamp: '2026-03-27T12:00:00.000Z',
         },
       },
@@ -149,7 +186,8 @@ export class TicketsController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a new ticket',
-    description: 'Creates a new support ticket. Agents and Admins can create tickets. Regular users can only create tickets for themselves.',
+    description:
+      'Creates a new support ticket. Agents and Admins can create tickets. Regular users can only create tickets for themselves.',
   })
   @ApiBody({
     type: CreateTicketDto,
@@ -159,7 +197,8 @@ export class TicketsController {
         summary: 'Standard Ticket',
         value: {
           title: 'Unable to login to customer portal',
-          description: 'Customer reports being unable to access the dashboard after successful login.',
+          description:
+            'Customer reports being unable to access the dashboard after successful login.',
           priority: 'MEDIUM',
         },
       },
@@ -167,7 +206,8 @@ export class TicketsController {
         summary: 'High Priority Ticket',
         value: {
           title: 'Production database connection failing',
-          description: 'All database connections are timing out. Production system is down.',
+          description:
+            'All database connections are timing out. Production system is down.',
           priority: 'CRITICAL',
         },
       },
@@ -188,7 +228,10 @@ export class TicketsController {
         value: {
           statusCode: 400,
           error: 'Bad Request',
-          message: ['title must be shorter than or equal to 200 characters', 'description must be at least 10 characters'],
+          message: [
+            'title must be shorter than or equal to 200 characters',
+            'description must be at least 10 characters',
+          ],
           timestamp: '2026-03-27T12:00:00.000Z',
         },
       },
@@ -215,7 +258,8 @@ export class TicketsController {
   @Permissions('tickets:update')
   @ApiOperation({
     summary: 'Update a ticket',
-    description: 'Updates an existing ticket. Can update title, description, status, priority, and assignee.',
+    description:
+      'Updates an existing ticket. Can update title, description, status, priority, and assignee.',
   })
   @ApiParam({
     name: 'id',

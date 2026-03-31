@@ -36,6 +36,10 @@ export class RolesController {
   async createPermission(
     @Body() body: { resource: string; action: string; description?: string },
   ): Promise<Permission> {
-    return this.rolesService.createPermission(body.resource, body.action, body.description);
+    return this.rolesService.createPermission(
+      body.resource,
+      body.action,
+      body.description,
+    );
   }
 }

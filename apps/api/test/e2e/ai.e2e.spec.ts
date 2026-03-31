@@ -1,76 +1,80 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { PostgreSqlContainer } from '@testcontainers/postgresql';
-import { RedisContainer } from '@testcontainers/redis';
-import { Test } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import 'reflect-metadata';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
+import {
+  setupTestApp,
+  createAuthenticatedUser,
+  createTestTicket,
+  cleanupTestData,
+  teardownTestEnvironment,
+} from './setup';
+import { INestApplication } from '@nestjs/common';
+import { TicketPriority } from '@pkg/types';
 
-describe('AI Jobs E2E', () => {
-  let postgres: any;
-  let redis: any;
+describe('AI E2E', () => {
   let app: INestApplication;
-  let authToken: string;
+  let userToken: string;
+  let adminToken: string;
+  let userId: string;
   let ticketId: string;
 
   beforeAll(async () => {
-    postgres = await new PostgreSqlContainer('postgres:16-alpine')
-      .withDatabase('test_db')
-      .withUsername('test')
-      .withPassword('test')
-      .start();
+    const { app: testApp } = await setupTestApp();
+    app = testApp;
 
-    redis = await new RedisContainer('redis:7-alpine')
-      .start();
+    const user = await createAuthenticatedUser(app, {
+      email: 'user@test.com',
+      name: 'Regular User',
+    });
+    userToken = user.accessToken;
+    userId = user.user.id;
 
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider('DATABASE_CONFIG')
-      .useValue({ url: postgres.getConnectionUri() })
-      .overrideProvider('REDIS_CONFIG')
-      .useValue({ url: redis.getConnectionUrl() })
-      .compile();
+    const admin = await createAuthenticatedUser(app, {
+      email: 'admin@test.com',
+      name: 'Admin User',
+      roles: ['ADMIN'],
+    });
+    adminToken = admin.accessToken;
 
-    app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api');
-    await app.init();
-
-    // Register, login and create a ticket
-    await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({ email: 'ai-test@example.com', password: 'password123', name: 'AI Test' });
-
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email: 'ai-test@example.com', password: 'password123' });
-
-    authToken = loginResponse.body.accessToken;
-
-    const ticketResponse = await request(app.getHttpServer())
-      .post('/api/tickets')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ title: 'AI Test Ticket', description: 'Test ticket for AI features' });
-
-    ticketId = ticketResponse.body.id;
+    const ticket = await createTestTicket(app, userId, {
+      title: 'AI Test Ticket',
+      description: 'Test ticket for AI features',
+      priority: TicketPriority.MEDIUM,
+    });
+    ticketId = ticket.id;
   });
 
   afterAll(async () => {
-    await app?.close();
-    await postgres?.stop();
-    await redis?.stop();
+    await cleanupTestData();
+    await teardownTestEnvironment();
   });
 
   describe('POST /api/ai/summarize', () => {
     it('should enqueue a summarize job', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/ai/summarize')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ ticketId });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('jobId');
       expect(response.body).toHaveProperty('resultId');
+    });
+
+    it('should return 404 for non-existent ticket', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/ai/summarize')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ ticketId: '00000000-0000-0000-0000-000000000000' });
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 401 without auth', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/ai/summarize')
+        .send({ ticketId });
+
+      expect(response.status).toBe(401);
     });
   });
 
@@ -78,11 +82,20 @@ describe('AI Jobs E2E', () => {
     it('should enqueue a detect priority job', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/ai/detect-priority')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ ticketId });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('jobId');
+    });
+
+    it('should return 404 for non-existent ticket', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/ai/detect-priority')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ ticketId: '00000000-0000-0000-0000-000000000000' });
+
+      expect(response.status).toBe(404);
     });
   });
 
@@ -90,26 +103,32 @@ describe('AI Jobs E2E', () => {
     it('should enqueue a suggest reply job', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/ai/suggest-reply')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ ticketId });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('jobId');
     });
+
+    it('should return 404 for non-existent ticket', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/ai/suggest-reply')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ ticketId: '00000000-0000-0000-0000-000000000000' });
+
+      expect(response.status).toBe(404);
+    });
   });
 
   describe('GET /api/sse/jobs/:jobId', () => {
-    it('should accept SSE connection', async () => {
-      // Create a job first
+    it('should accept SSE connection for job', async () => {
       const jobResponse = await request(app.getHttpServer())
         .post('/api/ai/summarize')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ ticketId });
 
       const jobId = jobResponse.body.jobId;
 
-      // SSE connections are tested manually or with specialized tools
-      // This test verifies the endpoint exists and accepts connections
       expect(jobId).toBeDefined();
     });
   });

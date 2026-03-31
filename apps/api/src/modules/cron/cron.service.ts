@@ -31,7 +31,9 @@ export class CronService {
       );
 
       for (const ticket of ticketsToClose) {
-        await this.ticketsService.update(ticket.id, { status: TicketStatus.CLOSED });
+        await this.ticketsService.update(ticket.id, {
+          status: TicketStatus.CLOSED,
+        });
         this.logger.log(`Auto-closed ticket ${ticket.id}`);
       }
 
@@ -49,8 +51,11 @@ export class CronService {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const deletedCount = await this.aiRepository.deleteFailedJobsOlderThan(thirtyDaysAgo);
-      this.logger.log(`Cleaned up ${deletedCount} failed AI job records older than 30 days`);
+      const deletedCount =
+        await this.aiRepository.deleteFailedJobsOlderThan(thirtyDaysAgo);
+      this.logger.log(
+        `Cleaned up ${deletedCount} failed AI job records older than 30 days`,
+      );
     } catch (error) {
       this.logger.error('Error in cleanup cron job', error);
     }

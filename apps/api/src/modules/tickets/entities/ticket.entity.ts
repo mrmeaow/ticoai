@@ -13,7 +13,11 @@ import { User } from '../../users/entities/user.entity';
 import { Message } from '../../messages/entities/message.entity';
 import { AiResult } from '../../ai/entities/ai-result.entity';
 import { TicketStatus, TicketPriority } from '@pkg/types';
-import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiHideProperty,
+} from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
 @Entity('tickets')
@@ -38,7 +42,8 @@ export class Ticket {
   @Column('text')
   @ApiProperty({
     description: 'Detailed description of the issue',
-    example: 'Customer reports being unable to access the dashboard after successful login. Error message appears: "Session expired".',
+    example:
+      'Customer reports being unable to access the dashboard after successful login. Error message appears: "Session expired".',
   })
   description: string;
 

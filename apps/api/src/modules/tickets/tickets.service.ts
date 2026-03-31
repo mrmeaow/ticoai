@@ -3,7 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { TicketsRepository, FindTicketsOptions, FindTicketsResult } from './tickets.repository';
+import {
+  TicketsRepository,
+  FindTicketsOptions,
+  FindTicketsResult,
+} from './tickets.repository';
 import { UsersService } from '../users/users.service';
 import { Ticket } from './entities/ticket.entity';
 import { User } from '../users/entities/user.entity';
@@ -99,7 +103,10 @@ export class TicketsService {
     await this.ticketsRepository.delete(id);
   }
 
-  async getStats(userId?: string, isAdmin = false): Promise<{
+  async getStats(
+    userId?: string,
+    isAdmin = false,
+  ): Promise<{
     total: number;
     open: number;
     inProgress: number;
@@ -113,11 +120,15 @@ export class TicketsService {
     const stats = {
       total: tickets.length,
       open: tickets.filter((t) => t.status === TicketStatus.OPEN).length,
-      inProgress: tickets.filter((t) => t.status === TicketStatus.IN_PROGRESS).length,
-      resolved: tickets.filter((t) => t.status === TicketStatus.RESOLVED).length,
+      inProgress: tickets.filter((t) => t.status === TicketStatus.IN_PROGRESS)
+        .length,
+      resolved: tickets.filter((t) => t.status === TicketStatus.RESOLVED)
+        .length,
       closed: tickets.filter((t) => t.status === TicketStatus.CLOSED).length,
       highPriority: tickets.filter(
-        (t) => t.priority === TicketPriority.HIGH || t.priority === TicketPriority.CRITICAL,
+        (t) =>
+          t.priority === TicketPriority.HIGH ||
+          t.priority === TicketPriority.CRITICAL,
       ).length,
     };
 

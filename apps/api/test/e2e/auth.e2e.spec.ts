@@ -1,55 +1,24 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { PostgreSqlContainer } from '@testcontainers/postgresql';
-import { RedisContainer } from '@testcontainers/redis';
-import { Test } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import 'reflect-metadata';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { RedisModule } from '../src/modules/redis/redis.module';
+import {
+  setupTestApp,
+  createAuthenticatedUser,
+  cleanupTestData,
+  teardownTestEnvironment,
+} from './setup';
+import { INestApplication } from '@nestjs/common';
 
 describe('Auth E2E', () => {
-  let postgres: any;
-  let redis: any;
   let app: INestApplication;
-  let authToken: string;
 
   beforeAll(async () => {
-    // Start test containers
-    postgres = await new PostgreSqlContainer('postgres:16-alpine')
-      .withDatabase('test_db')
-      .withUsername('test')
-      .withPassword('test')
-      .start();
-
-    redis = await new RedisContainer('redis:7-alpine')
-      .start();
-
-    // Setup test module with test database
-    const moduleRef = await Test.createTestingModule({
-      imports: [
-        AppModule,
-      ],
-    })
-      .overrideProvider('DATABASE_CONFIG')
-      .useValue({
-        url: postgres.getConnectionUri(),
-      })
-      .overrideProvider('REDIS_CONFIG')
-      .useValue({
-        url: redis.getConnectionUrl(),
-      })
-      .compile();
-
-    app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api');
-    await app.init();
+    const { app: testApp } = await setupTestApp();
+    app = testApp;
   });
 
   afterAll(async () => {
-    await app?.close();
-    await postgres?.stop();
-    await redis?.stop();
+    await cleanupTestData();
+    await teardownTestEnvironment();
   });
 
   describe('POST /api/auth/register', () => {
@@ -57,13 +26,15 @@ describe('Auth E2E', () => {
       const response = await request(app.getHttpServer())
         .post('/api/auth/register')
         .send({
-          email: 'test@example.com',
+          email: 'newuser@example.com',
           password: 'password123',
-          name: 'Test User',
+          name: 'New User',
         });
+      console.log('Response body:', JSON.stringify(response.body, null, 2));
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('accessToken');
+      expect(response.body).toHaveProperty('refreshToken');
     });
 
     it('should return 400 for invalid email', async () => {
@@ -77,30 +48,47 @@ describe('Auth E2E', () => {
 
       expect(response.status).toBe(400);
     });
+
+    it('should return 409 for duplicate email', async () => {
+      const email = `duplicate-${Date.now()}@example.com`;
+
+      await request(app.getHttpServer()).post('/api/auth/register').send({
+        email,
+        password: 'password123',
+        name: 'First User',
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/register')
+        .send({
+          email,
+          password: 'password123',
+          name: 'Second User',
+        });
+
+      expect(response.status).toBe(409);
+    });
   });
 
   describe('POST /api/auth/login', () => {
     it('should login with valid credentials', async () => {
-      // First register a user
-      await request(app.getHttpServer())
-        .post('/api/auth/register')
-        .send({
-          email: 'login-test@example.com',
-          password: 'password123',
-          name: 'Login Test',
-        });
+      const email = `logintest-${Date.now()}@example.com`;
 
-      // Then login
+      await request(app.getHttpServer()).post('/api/auth/register').send({
+        email,
+        password: 'password123',
+        name: 'Login Test',
+      });
+
       const response = await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
-          email: 'login-test@example.com',
+          email,
           password: 'password123',
         });
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('accessToken');
-      authToken = response.body.accessToken;
     });
 
     it('should return 401 for invalid credentials', async () => {
@@ -112,6 +100,48 @@ describe('Auth E2E', () => {
         });
 
       expect(response.status).toBe(401);
+    });
+  });
+
+  describe('POST /api/auth/refresh', () => {
+    it('should return error when no refresh token provided', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/refresh')
+        .send({});
+
+      // API returns 200 with error body when no token
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error');
+    });
+
+    it('should return 401 for invalid refresh token', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/refresh')
+        .send({ refreshToken: 'invalid-token' });
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe('POST /api/auth/logout', () => {
+    it('should logout successfully with valid token', async () => {
+      const email = `logout-${Date.now()}@example.com`;
+
+      const registerResponse = await request(app.getHttpServer())
+        .post('/api/auth/register')
+        .send({
+          email,
+          password: 'password123',
+          name: 'Logout Test',
+        });
+
+      const { accessToken } = registerResponse.body;
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(200);
     });
   });
 });

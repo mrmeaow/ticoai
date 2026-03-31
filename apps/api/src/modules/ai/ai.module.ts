@@ -43,6 +43,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   ],
   controllers: [AiController],
   providers: [AiService, AiRepository, AiProcessor],
-  exports: [AiService, BullModule],
+  exports: [AiService, AiRepository, BullModule],
 })
 export class AiModule {}

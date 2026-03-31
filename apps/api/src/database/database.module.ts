@@ -13,27 +13,48 @@ import { AiResult } from '../modules/ai/entities/ai-result.entity';
   imports: [
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('database.host', 'localhost'),
-        port: configService.get<number>('database.port', 5432),
-        username: configService.get<string>('database.username', 'ticoai'),
-        password: configService.get<string>('database.password', 'ticoai_secret'),
-        database: configService.get<string>('database.database', 'ticoai'),
-        entities: [
-          User,
-          Role,
-          Permission,
-          RolePermission,
-          Ticket,
-          Message,
-          AiResult,
-        ],
-        migrations: [__dirname + '/../../database/migrations/*{.ts,.js}'],
-        synchronize: false,
-        autoLoadEntities: true,
-        logging: configService.get<string>('app.nodeEnv') === 'development',
-      }),
+      useFactory: (configService: ConfigService) => {
+        // Always read from environment variables directly for test compatibility
+        const nodeEnv =
+          process.env.NODE_ENV ||
+          configService.get<string>('app.nodeEnv') ||
+          'development';
+        const isTest = nodeEnv === 'test';
+
+        return {
+          type: 'postgres',
+          host:
+            process.env.DB_HOST ||
+            configService.get<string>('database.host') ||
+            'localhost',
+          port: parseInt(process.env.DB_PORT || '5432', 10),
+          username:
+            process.env.DB_USERNAME ||
+            configService.get<string>('database.username') ||
+            'ticoai',
+          password:
+            process.env.DB_PASSWORD ||
+            configService.get<string>('database.password') ||
+            'ticoai_secret',
+          database:
+            process.env.DB_DATABASE ||
+            configService.get<string>('database.database') ||
+            'ticoai',
+          entities: [
+            User,
+            Role,
+            Permission,
+            RolePermission,
+            Ticket,
+            Message,
+            AiResult,
+          ],
+          migrations: [__dirname + '/../../database/migrations/*{.ts,.js}'],
+          synchronize: isTest,
+          autoLoadEntities: isTest,
+          logging: nodeEnv === 'development',
+        };
+      },
       inject: [ConfigService],
     }),
   ],

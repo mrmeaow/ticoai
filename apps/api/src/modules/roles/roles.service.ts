@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { RolesRepository } from './roles.repository';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
@@ -27,19 +31,34 @@ export class RolesService {
     return this.rolesRepository.findAllPermissions();
   }
 
-  async createPermission(resource: string, action: string, description?: string): Promise<Permission> {
-    const existingPermission = await this.rolesRepository.findPermission(resource, action);
+  async createPermission(
+    resource: string,
+    action: string,
+    description?: string,
+  ): Promise<Permission> {
+    const existingPermission = await this.rolesRepository.findPermission(
+      resource,
+      action,
+    );
     if (existingPermission) {
-      throw new ConflictException(`Permission '${resource}:${action}' already exists`);
+      throw new ConflictException(
+        `Permission '${resource}:${action}' already exists`,
+      );
     }
     return this.rolesRepository.createPermission(resource, action, description);
   }
 
-  async assignPermissionToRole(roleId: string, permissionId: string): Promise<void> {
+  async assignPermissionToRole(
+    roleId: string,
+    permissionId: string,
+  ): Promise<void> {
     try {
       await this.rolesRepository.assignPermissionToRole(roleId, permissionId);
     } catch (e: any) {
-      if (!e.message?.includes('already exists') && !e.code?.includes('23505')) {
+      if (
+        !e.message?.includes('already exists') &&
+        !e.code?.includes('23505')
+      ) {
         throw e;
       }
     }
@@ -50,7 +69,9 @@ export class RolesService {
     const permissions = new Set<string>();
 
     for (const role of userRoles) {
-      const rolePermissions = await this.rolesRepository.getPermissionsForRole(role.id);
+      const rolePermissions = await this.rolesRepository.getPermissionsForRole(
+        role.id,
+      );
       for (const permission of rolePermissions) {
         permissions.add(`${permission.resource}:${permission.action}`);
       }
@@ -79,7 +100,14 @@ export class RolesService {
   }
 
   async initializeDefaultPermissions(): Promise<void> {
-    const resources = ['users', 'tickets', 'messages', 'roles', 'ai', 'dashboard'];
+    const resources = [
+      'users',
+      'tickets',
+      'messages',
+      'roles',
+      'ai',
+      'dashboard',
+    ];
     const actions = ['create', 'read', 'update', 'delete'];
 
     for (const resource of resources) {

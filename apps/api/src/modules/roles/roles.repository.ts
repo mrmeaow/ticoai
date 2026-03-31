@@ -45,18 +45,32 @@ export class RolesRepository {
     return this.permissionRepository.find();
   }
 
-  async findPermission(resource: string, action: string): Promise<Permission | null> {
+  async findPermission(
+    resource: string,
+    action: string,
+  ): Promise<Permission | null> {
     return this.permissionRepository.findOne({
       where: { resource, action },
     });
   }
 
-  async createPermission(resource: string, action: string, description?: string): Promise<Permission> {
-    const permission = this.permissionRepository.create({ resource, action, description });
+  async createPermission(
+    resource: string,
+    action: string,
+    description?: string,
+  ): Promise<Permission> {
+    const permission = this.permissionRepository.create({
+      resource,
+      action,
+      description,
+    });
     return this.permissionRepository.save(permission);
   }
 
-  async assignPermissionToRole(roleId: string, permissionId: string): Promise<RolePermission> {
+  async assignPermissionToRole(
+    roleId: string,
+    permissionId: string,
+  ): Promise<RolePermission> {
     const rolePermission = this.rolePermissionRepository.create({
       role: { id: roleId },
       permission: { id: permissionId },

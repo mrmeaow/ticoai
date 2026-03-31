@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
@@ -20,7 +24,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<User> {
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.findByEmailWithPassword(email);
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -30,7 +34,10 @@ export class AuthService {
       throw new UnauthorizedException('User account is deactivated');
     }
 
-    const isValidPassword = await this.usersService.validatePassword(user, password);
+    const isValidPassword = await this.usersService.validatePassword(
+      user,
+      password,
+    );
 
     if (!isValidPassword) {
       throw new UnauthorizedException('Invalid credentials');
@@ -45,7 +52,11 @@ export class AuthService {
     return tokens;
   }
 
-  async register(email: string, password: string, name: string): Promise<AuthTokens> {
+  async register(
+    email: string,
+    password: string,
+    name: string,
+  ): Promise<AuthTokens> {
     const user = await this.usersService.create(email, password, name);
     return this.login(user);
   }
@@ -82,7 +93,10 @@ export class AuthService {
   }
 
   private async generateTokens(user: User): Promise<AuthTokens> {
-    const refreshTokenExpiration = this.configService.get<string>('jwt.refreshExpiration', '7d');
+    const refreshTokenExpiration = this.configService.get<string>(
+      'jwt.refreshExpiration',
+      '7d',
+    );
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync({
         sub: user.id,
@@ -100,7 +114,10 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async storeRefreshToken(userId: string, refreshToken: string): Promise<void> {
+  private async storeRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void> {
     const ttl = this.configService.get<string>('jwt.refreshExpiration', '7d');
     const ttlSeconds = this.parseTtlToSeconds(ttl);
     await this.redisService.set(`refresh:${userId}`, refreshToken, ttlSeconds);

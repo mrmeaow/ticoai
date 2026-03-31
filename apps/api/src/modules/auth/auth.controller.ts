@@ -20,7 +20,13 @@ import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { RegisterDto, LoginDto, RefreshTokenDto, AuthResponseDto, LogoutResponseDto } from './dto/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  RefreshTokenDto,
+  AuthResponseDto,
+  LogoutResponseDto,
+} from './dto/auth.dto';
 import { ErrorResponseDto } from '../../common/dto/error-response.dto';
 
 @Controller('auth')
@@ -33,7 +39,8 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Register a new user',
-    description: 'Creates a new user account with email, password, and name. Returns JWT tokens on success.',
+    description:
+      'Creates a new user account with email, password, and name. Returns JWT tokens on success.',
   })
   @ApiBody({
     type: RegisterDto,
@@ -89,7 +96,11 @@ export class AuthController {
     },
   })
   async register(@Body() body: RegisterDto) {
-    const tokens = await this.authService.register(body.email, body.password, body.name);
+    const tokens = await this.authService.register(
+      body.email,
+      body.password,
+      body.name,
+    );
     return tokens;
   }
 
@@ -98,7 +109,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Login user',
-    description: 'Authenticates user with email and password. Returns JWT tokens and sets refresh token in cookie.',
+    description:
+      'Authenticates user with email and password. Returns JWT tokens and sets refresh token in cookie.',
   })
   @ApiBody({
     type: LoginDto,
@@ -157,7 +169,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Refresh access token',
-    description: 'Generates a new access token using a valid refresh token. Refresh token can be sent in body or cookie.',
+    description:
+      'Generates a new access token using a valid refresh token. Refresh token can be sent in body or cookie.',
   })
   @ApiBody({
     type: RefreshTokenDto,
@@ -223,7 +236,8 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Logout user',
-    description: 'Invalidates the refresh token and clears the cookie. Requires valid access token.',
+    description:
+      'Invalidates the refresh token and clears the cookie. Requires valid access token.',
   })
   @ApiResponse({
     status: 200,

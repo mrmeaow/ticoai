@@ -2,6 +2,7 @@ import {
   ExceptionFilter,
   Catch,
   ArgumentsHost,
+  HttpException,
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -21,20 +22,40 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const status =
-      exception instanceof Error &&
-      'getStatus' in exception &&
-      typeof exception.getStatus === 'function'
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let status: number = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message: string | string[] = 'Internal server error';
+    let error: string = 'Internal Server Error';
 
-    const message =
-      exception instanceof Error ? exception.message : 'Internal server error';
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const exceptionResponse = exception.getResponse();
+
+      if (typeof exceptionResponse === 'string') {
+        message = exceptionResponse;
+      } else if (
+        typeof exceptionResponse === 'object' &&
+        exceptionResponse !== null
+      ) {
+        const resp = exceptionResponse as Record<string, any>;
+        message = resp.message || exceptionResponse;
+        error = resp.error;
+      } else {
+        message = exception.message;
+      }
+    } else if (exception instanceof Error) {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = exception.message;
+    } else {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = 'Internal server error';
+    }
+
+    error = error || HttpStatus[status] || 'Unknown Error';
 
     const errorResponse: ErrorResponse = {
       statusCode: status,
       message,
-      error: HttpStatus[status] || 'Unknown Error',
+      error,
       timestamp: new Date().toISOString(),
       path: request.url,
     };

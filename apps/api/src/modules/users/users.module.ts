@@ -8,10 +8,7 @@ import { RolesModule } from '../roles/roles.module';
 
 @Global()
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    forwardRef(() => RolesModule),
-  ],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => RolesModule)],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],
   exports: [UsersService, UsersRepository],

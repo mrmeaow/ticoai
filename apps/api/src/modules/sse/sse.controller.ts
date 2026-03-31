@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Sse, MessageEvent, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Sse,
+  MessageEvent,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { SseService, SseJobResult } from './sse.service';
@@ -22,10 +30,12 @@ export class SseController {
     const stream$ = this.sseService.addClient(jobId);
 
     return stream$.pipe(
-      map((result: SseJobResult): MessageEvent => ({
-        type: 'message',
-        data: JSON.stringify(result),
-      })),
+      map(
+        (result: SseJobResult): MessageEvent => ({
+          type: 'message',
+          data: JSON.stringify(result),
+        }),
+      ),
     );
   }
 }
