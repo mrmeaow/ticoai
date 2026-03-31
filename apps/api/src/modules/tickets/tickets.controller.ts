@@ -121,7 +121,6 @@ export class TicketsController {
       {
         status,
         priority,
-        assigneeId,
         search,
         page: parseInt(page.toString()),
         limit: parseInt(limit.toString()),

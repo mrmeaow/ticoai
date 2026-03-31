@@ -3,7 +3,7 @@ import { Ticket } from '../entities/ticket.entity';
 
 export class TicketListResponseDto {
   @ApiProperty({
-    description: 'List of tickets',
+    description: 'List of tickets in the current page',
     type: () => [Ticket],
   })
   tickets: Ticket[];
@@ -25,4 +25,16 @@ export class TicketListResponseDto {
     format: 'uuid',
   })
   nextCursor?: string;
+
+  @ApiPropertyOptional({
+    description: 'Current page number',
+    example: 1,
+  })
+  page?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of tickets per page',
+    example: 20,
+  })
+  limit?: number;
 }

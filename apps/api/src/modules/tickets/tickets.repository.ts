@@ -122,12 +122,12 @@ export class TicketsRepository {
     ticketData: Partial<Ticket>,
   ): Promise<Ticket | null> {
     // Handle assigneeId relation properly
-    if (ticketData.assigneeId) {
+    if ((ticketData as any).assigneeId) {
       await this.ticketRepository.manager.query(
         'UPDATE "tickets" SET "assigneeId" = $1 WHERE "id" = $2',
-        [ticketData.assigneeId, id],
+        [(ticketData as any).assigneeId, id],
       );
-      delete ticketData.assigneeId;
+      delete (ticketData as any).assigneeId;
     }
 
     if (Object.keys(ticketData).length > 0) {
