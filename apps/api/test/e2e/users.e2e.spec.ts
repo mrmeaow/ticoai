@@ -116,7 +116,7 @@ describe('Users E2E', () => {
 
     it('should return 404 for non-existent user', async () => {
       const response = await request(app.getHttpServer())
-        .patch('/api/users/00000000-0000-0000-0000-000000000000')
+        .patch('/api/users/11111111-1111-4111-8111-111111111111')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'Should Not Work' });
 
@@ -137,7 +137,7 @@ describe('Users E2E', () => {
 
     it('should return 404 for non-existent user', async () => {
       const response = await request(app.getHttpServer())
-        .patch('/api/users/00000000-0000-0000-0000-000000000000/roles')
+        .patch('/api/users/11111111-1111-4111-8111-111111111111/roles')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ roles: ['USER'] });
 
@@ -184,10 +184,10 @@ describe('Users E2E', () => {
 
     it('should return 404 for non-existent user', async () => {
       const response = await request(app.getHttpServer())
-        .delete('/api/users/00000000-0000-0000-0000-000000000000')
+        .delete('/api/users/11111111-1111-4111-8111-111111111111')
         .set('Authorization', `Bearer ${adminToken}`);
 
-      expect([200, 404]).toContain(response.status);
+      expect([204, 404]).toContain(response.status);
     });
   });
 });

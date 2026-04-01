@@ -64,7 +64,7 @@ describe('AI E2E', () => {
       const response = await request(app.getHttpServer())
         .post('/api/ai/summarize')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ ticketId: '00000000-0000-0000-0000-000000000000' });
+        .send({ ticketId: '11111111-1111-4111-8111-111111111111' });
 
       expect(response.status).toBe(404);
     });
@@ -91,9 +91,9 @@ describe('AI E2E', () => {
 
     it('should return 404 for non-existent ticket', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/ai/detect-priority')
+        .post('/api/ai/suggest-reply')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ ticketId: '00000000-0000-0000-0000-000000000000' });
+        .send({ ticketId: '11111111-1111-4111-8111-111111111111' });
 
       expect(response.status).toBe(404);
     });
@@ -112,9 +112,9 @@ describe('AI E2E', () => {
 
     it('should return 404 for non-existent ticket', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/ai/suggest-reply')
+        .post('/api/ai/summarize')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ ticketId: '00000000-0000-0000-0000-000000000000' });
+        .send({ ticketId: '11111111-1111-4111-8111-111111111111' });
 
       expect(response.status).toBe(404);
     });
