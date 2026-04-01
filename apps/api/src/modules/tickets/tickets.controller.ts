@@ -117,18 +117,19 @@ export class TicketsController {
       ['SUPER_ADMIN', 'ADMIN'].includes(r.name),
     );
 
-    return this.ticketsService.findAll(
-      {
-        status,
-        priority,
-        search,
-        page: parseInt(page.toString()),
-        limit: parseInt(limit.toString()),
-        cursor,
-      },
-      user.id,
-      isAdmin,
-    );
+     return this.ticketsService.findAll(
+       {
+         status,
+         priority,
+         assigneeId,
+         search,
+         page: parseInt(page.toString()),
+         limit: parseInt(limit.toString()),
+         cursor,
+       },
+       user.id,
+       isAdmin,
+     );
   }
 
   @Get(':id')

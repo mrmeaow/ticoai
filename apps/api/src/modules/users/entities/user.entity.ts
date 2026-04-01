@@ -43,8 +43,12 @@ export class User {
   @ApiProperty({ description: 'Whether the user is active', example: true })
   isActive: boolean;
 
-  @ManyToMany(() => Role, (role) => role.users, { eager: true })
-  @JoinTable()
+  @ManyToMany(() => Role, (role) => role.users)
+  @JoinTable({
+    name: 'users_roles',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'roleId', referencedColumnName: 'id' },
+  })
   @ApiProperty({
     description: 'User roles',
     type: () => [Role],

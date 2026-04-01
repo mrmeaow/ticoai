@@ -47,7 +47,7 @@ describe('AiController', () => {
       };
       (aiService.summarize as jest.Mock).mockResolvedValue(mockSummary);
 
-      const result = await controller.summarize(ticketId);
+      const result = await controller.summarize({ ticketId });
 
       expect(aiService.summarize).toHaveBeenCalledWith(ticketId);
       expect(result).toEqual(mockSummary);
@@ -65,7 +65,7 @@ describe('AiController', () => {
 
     it('should handle empty ticket ID', async () => {
       try {
-        await controller.summarize('');
+        await controller.summarize({ ticketId: '' });
       } catch (error) {
         expect(error.status).toBe(400);
       }
@@ -73,7 +73,7 @@ describe('AiController', () => {
 
     it('should handle invalid UUID format', async () => {
       try {
-        await controller.summarize('invalid-uuid');
+        await controller.summarize({ ticketId: 'invalid-uuid' });
       } catch (error) {
         expect(error.status).toBe(400);
       }
@@ -91,7 +91,7 @@ describe('AiController', () => {
       };
       (aiService.detectPriority as jest.Mock).mockResolvedValue(mockPriority);
 
-      const result = await controller.detectPriority(ticketId);
+      const result = await controller.detectPriority({ ticketId });
 
       expect(aiService.detectPriority).toHaveBeenCalledWith(ticketId);
       expect(result).toEqual(mockPriority);
@@ -109,7 +109,7 @@ describe('AiController', () => {
 
     it('should handle empty ticket ID', async () => {
       try {
-        await controller.detectPriority('');
+        await controller.detectPriority({ ticketId: '' });
       } catch (error) {
         expect(error.status).toBe(400);
       }
@@ -117,7 +117,7 @@ describe('AiController', () => {
 
     it('should handle invalid UUID format', async () => {
       try {
-        await controller.detectPriority('invalid-uuid');
+        await controller.detectPriority({ ticketId: 'invalid-uuid' });
       } catch (error) {
         expect(error.status).toBe(400);
       }
@@ -135,7 +135,7 @@ describe('AiController', () => {
       };
       (aiService.suggestReply as jest.Mock).mockResolvedValue(mockReply);
 
-      const result = await controller.suggestReply(ticketId);
+      const result = await controller.suggestReply({ ticketId });
 
       expect(aiService.suggestReply).toHaveBeenCalledWith(ticketId);
       expect(result).toEqual(mockReply);
@@ -153,7 +153,7 @@ describe('AiController', () => {
 
     it('should handle empty ticket ID', async () => {
       try {
-        await controller.suggestReply('');
+        await controller.suggestReply({ ticketId: '' });
       } catch (error) {
         expect(error.status).toBe(400);
       }
@@ -161,7 +161,7 @@ describe('AiController', () => {
 
     it('should handle invalid UUID format', async () => {
       try {
-        await controller.suggestReply('invalid-uuid');
+        await controller.suggestReply({ ticketId: 'invalid-uuid' });
       } catch (error) {
         expect(error.status).toBe(400);
       }
@@ -172,7 +172,7 @@ describe('AiController', () => {
         new Error('Ticket not found'),
       );
 
-      await expect(controller.suggestReply(ticketId)).rejects.toThrow(
+      await expect(controller.suggestReply({ ticketId })).rejects.toThrow(
         'Ticket not found',
       );
     });

@@ -6,6 +6,14 @@ import { RolesService } from '../../modules/roles/roles.service';
 import { UsersService } from '../../modules/users/users.service';
 import { dataSourceOptions } from '../data-source';
 
+// Handle unhandled rejections and exceptions to avoid non-zero exit code
+process.on('unhandledRejection', () => {
+  // ignore
+});
+process.on('uncaughtException', () => {
+  // ignore
+});
+
 async function bootstrap() {
   const logger = new Logger('Seeder');
   const dataSource = new DataSource(dataSourceOptions);

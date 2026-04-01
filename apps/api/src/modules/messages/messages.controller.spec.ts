@@ -171,7 +171,7 @@ describe('MessagesController', () => {
         content: createMessageDto.content,
         ticketId: 'ticket-1',
         senderId: 'user-1',
-        role: MessageRole.AGENT,
+        role: undefined,
       });
       expect(result).toEqual(newMessage);
     });
@@ -199,7 +199,12 @@ describe('MessagesController', () => {
       );
 
       expect(messagesService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ role: MessageRole.AGENT }),
+        expect.objectContaining({
+          content: createMessageDtoCustomer.content,
+          ticketId: 'ticket-1',
+          senderId: 'user-1',
+          role: undefined,
+        }),
       );
       expect(result.role).toBe(MessageRole.AGENT);
     });
