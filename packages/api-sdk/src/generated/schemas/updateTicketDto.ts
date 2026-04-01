@@ -22,8 +22,22 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
 
  * OpenAPI spec version: 2.0.0
  */
+import type { UpdateTicketDtoStatus } from './updateTicketDtoStatus';
+import type { UpdateTicketDtoPriority } from './updateTicketDtoPriority';
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type UpdateTicketDto = {
+  /**
+   * Ticket title (brief summary of the issue)
+   * @minLength 1
+   * @maxLength 200
+   */
+  title?: string;
+  /** Detailed description of the issue or request */
+  description?: string;
+  /** Current ticket status */
+  status?: UpdateTicketDtoStatus;
+  /** Priority level of the ticket */
+  priority?: UpdateTicketDtoPriority;
+  /** Assignee user ID (assign ticket to an agent) */
+  assigneeId?: string;
 };

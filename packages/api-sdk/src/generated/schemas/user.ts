@@ -22,8 +22,21 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
 
  * OpenAPI spec version: 2.0.0
  */
+import type { Role } from './role';
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type User = {
+  /** User unique identifier */
+  id: string;
+  /** User email address */
+  email: string;
+  /** User full name */
+  name: string;
+  /** Whether the user is active */
+  isActive: boolean;
+  /** User roles */
+  roles: Role[];
+  /** Account creation timestamp */
+  createdAt: string;
+  /** Last update timestamp */
+  updatedAt: string;
 };

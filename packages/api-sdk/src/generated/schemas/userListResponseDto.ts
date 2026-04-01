@@ -22,8 +22,19 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
 
  * OpenAPI spec version: 2.0.0
  */
+import type { User } from './user';
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type UserListResponseDto = {
+  /** Array of users in the current page */
+  users: User[];
+  /** Total number of users */
+  total: number;
+  /** Whether there are more users to load */
+  hasMore: boolean;
+  /** Cursor for next page */
+  nextCursor?: string;
+  /** Current page number */
+  page?: number;
+  /** Number of users per page */
+  limit?: number;
 };

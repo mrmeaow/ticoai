@@ -23,7 +23,22 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
  * OpenAPI spec version: 2.0.0
  */
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type CreatePermissionDto = {
+  /**
+   * Resource the permission applies to
+   * @minLength 2
+   * @maxLength 50
+   */
+  resource: string;
+  /**
+   * Action allowed on the resource
+   * @minLength 2
+   * @maxLength 50
+   */
+  action: string;
+  /**
+   * Description of the permission
+   * @maxLength 500
+   */
+  description?: string;
 };

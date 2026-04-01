@@ -22,8 +22,17 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
 
  * OpenAPI spec version: 2.0.0
  */
+import type { SseJobResultDtoStatus } from './sseJobResultDtoStatus';
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type SseJobResultDto = {
+  /** Unique identifier of the job */
+  jobId: string;
+  /** Current status of the job */
+  status: SseJobResultDtoStatus;
+  /** Result data when job completes */
+  result?: string;
+  /** Error message if job fails */
+  error?: string;
+  /** Progress percentage (0-100) */
+  progress?: number;
 };

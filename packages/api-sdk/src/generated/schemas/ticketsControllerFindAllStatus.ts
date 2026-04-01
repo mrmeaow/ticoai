@@ -23,7 +23,13 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
  * OpenAPI spec version: 2.0.0
  */
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
-};
+export type TicketsControllerFindAllStatus = typeof TicketsControllerFindAllStatus[keyof typeof TicketsControllerFindAllStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TicketsControllerFindAllStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED',
+} as const;

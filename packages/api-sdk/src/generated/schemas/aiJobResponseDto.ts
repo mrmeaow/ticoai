@@ -23,7 +23,13 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
  * OpenAPI spec version: 2.0.0
  */
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type AiJobResponseDto = {
+  /** Unique identifier for the AI processing job */
+  jobId: string;
+  /** Unique identifier for retrieving the job result */
+  resultId: string;
+  /** Estimated time in seconds for job completion */
+  estimatedTimeSeconds?: number;
+  /** Status message about the job */
+  message?: string;
 };

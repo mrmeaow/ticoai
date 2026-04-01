@@ -22,8 +22,19 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
 
  * OpenAPI spec version: 2.0.0
  */
+import type { Ticket } from './ticket';
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type TicketListResponseDto = {
+  /** List of tickets in the current page */
+  tickets: Ticket[];
+  /** Total number of tickets matching the filter */
+  total: number;
+  /** Whether there are more tickets to load */
+  hasMore: boolean;
+  /** Cursor for next page (UUID of last ticket) */
+  nextCursor?: string;
+  /** Current page number */
+  page?: number;
+  /** Number of tickets per page */
+  limit?: number;
 };

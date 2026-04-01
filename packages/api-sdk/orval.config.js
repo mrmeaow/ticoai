@@ -1,7 +1,7 @@
 module.exports = {
   ticoai: {
     input: {
-      target: '../../apps/api/src/api-docs/openapi.json',
+      target: 'http://localhost:3030/api/openapi.json',
     },
     output: {
       mode: 'single',
@@ -11,7 +11,13 @@ module.exports = {
       mock: false,
       override: {
         useTypeOverInterfaces: true,
+        mutator: {
+          path: './src/mutator.ts',
+          name: 'customInstance',
+        },
       },
+      allParamsOptional: true,
+      urlEncodeParameters: true,
       clean: true,
     },
   },

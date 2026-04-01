@@ -23,7 +23,16 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
  * OpenAPI spec version: 2.0.0
  */
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
-};
+/**
+ * Priority level of the ticket
+ */
+export type CreateTicketDtoPriority = typeof CreateTicketDtoPriority[keyof typeof CreateTicketDtoPriority];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CreateTicketDtoPriority = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  CRITICAL: 'CRITICAL',
+} as const;

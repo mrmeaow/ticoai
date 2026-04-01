@@ -22,8 +22,13 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
 
  * OpenAPI spec version: 2.0.0
  */
+import type { TicketStatsDto } from './ticketStatsDto';
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type DashboardStatsDto = {
+  /** Ticket statistics */
+  stats: TicketStatsDto;
+  /** Recently created tickets */
+  recentTickets: unknown[][];
+  /** Average resolution time in hours */
+  avgResolutionHours?: number;
 };

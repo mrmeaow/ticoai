@@ -23,7 +23,16 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
  * OpenAPI spec version: 2.0.0
  */
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
-};
+/**
+ * Current status of the job
+ */
+export type SseJobResultDtoStatus = typeof SseJobResultDtoStatus[keyof typeof SseJobResultDtoStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SseJobResultDtoStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;

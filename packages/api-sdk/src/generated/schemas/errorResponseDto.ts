@@ -22,8 +22,19 @@ Most endpoints require authentication via JWT Bearer token. Use the **Authorize*
 
  * OpenAPI spec version: 2.0.0
  */
+import type { ErrorResponseDtoMessage } from './errorResponseDtoMessage';
 
-export type RefreshTokenDto = {
-  /** Refresh token (can also be sent via cookie) */
-  refreshToken?: string;
+export type ErrorResponseDto = {
+  /** HTTP status code */
+  statusCode: number;
+  /** Error type */
+  error: string;
+  /** Detailed error message */
+  message: ErrorResponseDtoMessage;
+  /** Timestamp of the error */
+  timestamp: string;
+  /** Request URL path that caused the error */
+  path: string;
+  /** Stack trace (development only) */
+  stack?: string;
 };
