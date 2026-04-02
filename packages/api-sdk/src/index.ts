@@ -4,3 +4,4 @@
 
 export * from './generated/ticoai-api';
 export * from './generated/schemas';
+export * from './mutator';

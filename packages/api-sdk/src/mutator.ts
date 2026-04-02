@@ -6,6 +6,7 @@ let axiosInstance: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Function to configure the base URL (call this from your app)

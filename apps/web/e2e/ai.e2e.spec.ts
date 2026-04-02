@@ -34,13 +34,23 @@ const mockMessages = [
 
 test.describe('AI Features', () => {
   test.beforeEach(async ({ page, context }) => {
-    // Set auth token via context addInitScript before any navigation
+    // Set auth token and bypass cookie
     await context.addInitScript(() => {
       localStorage.setItem('access_token', 'fake-token');
+      document.cookie = 'test_bypass=1; path=/';
     });
 
-    // Mock auth/me endpoint (what AuthService calls)
-    await page.route('**/api/auth/me', (route) => {
+    // Mock refresh token endpoint
+    await page.route('**/api/auth/refresh', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ accessToken: 'fake-access-token' }),
+      });
+    });
+
+    // Mock users/me endpoint (what AuthService calls)
+    await page.route('**/api/users/me', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',

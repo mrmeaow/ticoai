@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import {
   HttpInterceptorFn,
   HttpRequest,
@@ -6,25 +6,16 @@ import {
   HttpEvent,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, filter, take, switchMap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../../environments/environment';
-
-let authService: AuthService;
-
-export function provideAuthInterceptor(auth: AuthService) {
-  authService = auth;
-}
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> => {
-  if (!authService) {
-    return next(req);
-  }
-
+  const authService = inject(AuthService);
   const isAuthRequest = req.url.startsWith(environment.apiUrl);
   const token = localStorage.getItem('access_token');
 
@@ -41,7 +32,7 @@ export const authInterceptor: HttpInterceptorFn = (
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        return handle401Error(authReq, next);
+        return handle401Error(authReq, next, authService);
       }
       return throwError(() => error);
     }),
@@ -51,11 +42,8 @@ export const authInterceptor: HttpInterceptorFn = (
 function handle401Error(
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
+  authService: AuthService,
 ): Observable<HttpEvent<unknown>> {
-  if (!authService) {
-    return throwError(() => new Error('Auth service not available'));
-  }
-
   return authService.refreshToken().pipe(
     switchMap(() => {
       const token = localStorage.getItem('access_token');
