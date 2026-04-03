@@ -1,0 +1,29 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+describe('AppController DI Test', () => {
+  let appController: AppController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [
+        {
+          provide: AppService,
+          useValue: { getHello: jest.fn(() => 'Hello World!') },
+        },
+      ],
+    }).compile();
+
+    appController = module.get<AppController>(AppController);
+  });
+
+  it('should inject appService', () => {
+    expect(appController).toBeDefined();
+  });
+
+  it('should return hello', () => {
+    expect(appController.getHello()).toBe('Hello World!');
+  });
+});

@@ -1,0 +1,60 @@
+{
+  "name": "@app/web",
+  "version": "2.0.0",
+  "scripts": {
+    "ng": "ng",
+    "dev": "ng serve --host 0.0.0.0 --port 4200",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test --no-watch",
+    "test:watch": "ng test",
+    "test:cov": "ng test --no-watch --code-coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "e2e:report": "pnpm exec playwright show-report"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^21.1.0",
+    "@angular/core": "^21.1.0",
+    "@angular/forms": "^21.1.0",
+    "@angular/platform-browser": "^21.1.0",
+    "@angular/router": "^21.1.0",
+    "@pkg/api-sdk": "workspace:*",
+    "@pkg/types": "workspace:*",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "^0.16.1"
+  },
+  "devDependencies": {
+    "@analogjs/vitest-angular": "^2.4.0",
+    "@angular/build": "^21.1.4",
+    "@angular/cli": "^21.1.4",
+    "@angular/compiler": "^21.2.6",
+    "@angular/compiler-cli": "^21.1.0",
+    "@angular/platform-browser-dynamic": "^21.2.6",
+    "@playwright/test": "^1.58.2",
+    "@testing-library/angular": "^19.2.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "autoprefixer": "^10.4.27",
+    "jsdom": "^27.1.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

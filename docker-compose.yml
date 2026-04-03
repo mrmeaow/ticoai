@@ -1,0 +1,71 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ticoai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-ticoai}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ticoai_secret}
+      POSTGRES_DB: ${DB_DATABASE:-ticoai}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-ticoai} -d ${DB_DATABASE:-ticoai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Cache, Queue, Session Store)
+  redis:
+    image: redis:7-alpine
+    container_name: ticoai-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Mailpit (SMTP for Development)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ticoai-mailpit
+    restart: unless-stopped
+    ports:
+      - "${SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    volumes:
+      - mailpit_data:/data
+
+  # LM Studio (Local LLM Server)
+  # Note: LM Studio requires a local installation and server to be running
+  # This is a placeholder service - in production, configure LMSTUDIO_URL accordingly
+  lmstudio:
+    image: ghcr.io/lmstudio-ai/lmstudio:latest
+    container_name: ticoai-lmstudio
+    restart: unless-stopped
+    ports:
+      - "${LMSTUDIO_PORT:-1234}:1234"
+    volumes:
+      - lmstudio_models:/models
+    environment:
+      - MODEL_PATH=/models/llama-3.1-8b-instruct.gguf
+    profiles:
+      - ai
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  mailpit_data:
+    driver: local
+  lmstudio_models:
+    driver: local
