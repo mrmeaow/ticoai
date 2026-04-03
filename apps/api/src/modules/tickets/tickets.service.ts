@@ -63,7 +63,7 @@ export class TicketsService {
       if (!foundAssignee) {
         throw new NotFoundException('Assignee not found');
       }
-      assignee = foundAssignee as User;
+      assignee = foundAssignee;
     }
 
     const createdBy = await this.usersService.findById(dto.createdById);

@@ -6,16 +6,26 @@ export default defineConfig({
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,
   workers: process.env['CI'] ? 1 : undefined,
-  reporter: 'html',
+  reporter: [
+    ['html', { open: 'never' }],
+    ['list'],
+  ],
   timeout: 30_000,
   expect: {
     timeout: 10_000,
   },
   use: {
     baseURL: 'http://localhost:4200',
-    trace: 'on-first-retry',
+    trace: process.env['CI'] ? 'on-first-retry' : 'on',
+    launchOptions: {
+      timeout: 20_000,
+    },
     viewport: { width: 1280, height: 720 },
-    screenshot: 'only-on-failure',
+    screenshot: process.env['CI'] ? 'only-on-failure' : 'on',
+    video: {
+      mode: process.env['CI'] ? 'on-first-retry' : 'on',
+      size: { width: 1280, height: 720 },
+    },
   },
   projects: [
     {

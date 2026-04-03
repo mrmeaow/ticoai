@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { captureScreenshot, resetScreenshotCounter } from './helpers/test-media.helper';
 
 test.describe('Authentication Flows', () => {
   test.beforeEach(async ({ page, context }) => {
+    resetScreenshotCounter();
     // Clear localStorage via context init script before each test
     await context.addInitScript(() => {
       localStorage.clear();
@@ -16,6 +18,7 @@ test.describe('Authentication Flows', () => {
       await expect(page.locator('#email')).toBeVisible();
       await expect(page.locator('#password')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
+      await captureScreenshot(page, 'login_form_loaded');
     });
 
     test('should have link to register page', async ({ page }) => {
@@ -28,11 +31,15 @@ test.describe('Authentication Flows', () => {
 
     test('should show validation error for invalid email', async ({ page }) => {
       await page.goto('/auth/login');
+      await captureScreenshot(page, 'login_page_initial');
+
       await page.locator('#email').fill('invalid-email');
       await page.locator('#password').fill('password123');
+
       // Trigger validation by focusing out
       await page.locator('#password').focus();
       await expect(page.getByText('Please enter a valid email')).toBeVisible();
+      await captureScreenshot(page, 'login_validation_error');
     });
 
     test('should show validation error for short password', async ({ page }) => {
@@ -55,10 +62,14 @@ test.describe('Authentication Flows', () => {
       });
 
       await page.goto('/auth/login');
+      await captureScreenshot(page, 'login_form_before_submit');
+
       await page.locator('#email').fill('wrong@example.com');
       await page.locator('#password').fill('wrongpassword');
       await page.getByRole('button', { name: 'Sign in' }).click();
+
       await expect(page.getByText('Invalid credentials')).toBeVisible();
+      await captureScreenshot(page, 'login_error_displayed');
     });
 
     test('should redirect to dashboard on successful login', async ({ page }) => {
@@ -92,14 +103,20 @@ test.describe('Authentication Flows', () => {
       });
 
       await page.goto('/auth/login');
+      await captureScreenshot(page, 'login_form_filled');
+
       await page.locator('#email').fill('test@example.com');
       await page.locator('#password').fill('password123');
+      await captureScreenshot(page, 'login_credentials_entered');
+
       // Submit the form
       await page.locator('form').dispatchEvent('submit');
+
       // After successful login, check that we have navigation links (authenticated state)
       await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Tickets' })).toBeVisible();
       await expect(page.getByText('Test User')).toBeVisible();
+      await captureScreenshot(page, 'dashboard_after_login');
     });
   });
 

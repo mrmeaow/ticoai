@@ -521,7 +521,7 @@ describe('UsersRepository', () => {
 
   describe('findById', () => {
     it('should find user by id with roles relation', async () => {
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(mockUser);
+      mockTypeormRepository.findOne.mockResolvedValue(mockUser);
 
       const result = await repository.findById('user-1');
 
@@ -533,7 +533,7 @@ describe('UsersRepository', () => {
     });
 
     it('should return null when user not found', async () => {
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(null);
+      mockTypeormRepository.findOne.mockResolvedValue(null);
 
       const result = await repository.findById('non-existent-id');
 
@@ -541,7 +541,7 @@ describe('UsersRepository', () => {
     });
 
     it('should handle invalid UUID format', async () => {
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(null);
+      mockTypeormRepository.findOne.mockResolvedValue(null);
 
       const result = await repository.findById('invalid-uuid');
 
@@ -551,7 +551,7 @@ describe('UsersRepository', () => {
 
   describe('findByEmail', () => {
     it('should find user by email with roles relation', async () => {
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(mockUser);
+      mockTypeormRepository.findOne.mockResolvedValue(mockUser);
 
       const result = await repository.findByEmail('test@example.com');
 
@@ -563,7 +563,7 @@ describe('UsersRepository', () => {
     });
 
     it('should return null when email not found', async () => {
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(null);
+      mockTypeormRepository.findOne.mockResolvedValue(null);
 
       const result = await repository.findByEmail('nonexistent@example.com');
 
@@ -574,9 +574,7 @@ describe('UsersRepository', () => {
   describe('findAll', () => {
     it('should return paginated users with roles', async () => {
       const paginatedResult: [User[], number] = [[mockUser], 1];
-      (mockTypeormRepository.findAndCount as jest.Mock).mockResolvedValue(
-        paginatedResult,
-      );
+      mockTypeormRepository.findAndCount.mockResolvedValue(paginatedResult);
 
       const result = await repository.findAll(1, 20);
 
@@ -589,10 +587,7 @@ describe('UsersRepository', () => {
     });
 
     it('should use default pagination values', async () => {
-      (mockTypeormRepository.findAndCount as jest.Mock).mockResolvedValue([
-        [],
-        0,
-      ]);
+      mockTypeormRepository.findAndCount.mockResolvedValue([[], 0]);
 
       await repository.findAll();
 
@@ -604,10 +599,7 @@ describe('UsersRepository', () => {
     });
 
     it('should handle custom page and limit', async () => {
-      (mockTypeormRepository.findAndCount as jest.Mock).mockResolvedValue([
-        [mockUser],
-        1,
-      ]);
+      mockTypeormRepository.findAndCount.mockResolvedValue([[mockUser], 1]);
 
       await repository.findAll(3, 10);
 
@@ -619,10 +611,7 @@ describe('UsersRepository', () => {
     });
 
     it('should return empty array when no users exist', async () => {
-      (mockTypeormRepository.findAndCount as jest.Mock).mockResolvedValue([
-        [],
-        0,
-      ]);
+      mockTypeormRepository.findAndCount.mockResolvedValue([[], 0]);
 
       const result = await repository.findAll();
 
@@ -639,8 +628,8 @@ describe('UsersRepository', () => {
         passwordHash: 'hashed',
         roles: [mockRole],
       };
-      (mockTypeormRepository.create as jest.Mock).mockReturnValue(userData);
-      (mockTypeormRepository.save as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.create.mockReturnValue(userData);
+      mockTypeormRepository.save.mockResolvedValue({
         ...userData,
         id: 'new-id',
       });
@@ -659,8 +648,8 @@ describe('UsersRepository', () => {
         passwordHash: 'hashed',
         roles: [],
       };
-      (mockTypeormRepository.create as jest.Mock).mockReturnValue(userData);
-      (mockTypeormRepository.save as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.create.mockReturnValue(userData);
+      mockTypeormRepository.save.mockResolvedValue({
         ...userData,
         id: 'new-id',
       });
@@ -677,10 +666,8 @@ describe('UsersRepository', () => {
       const existingUser = { ...mockUser, name: 'Old Name' };
       const updatedUser = { ...mockUser, ...updateData };
 
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(
-        existingUser,
-      );
-      (mockTypeormRepository.save as jest.Mock).mockResolvedValue(updatedUser);
+      mockTypeormRepository.findOne.mockResolvedValue(existingUser);
+      mockTypeormRepository.save.mockResolvedValue(updatedUser);
 
       const result = await repository.update('user-1', updateData);
 
@@ -693,7 +680,7 @@ describe('UsersRepository', () => {
     });
 
     it('should return null when user not found', async () => {
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(null);
+      mockTypeormRepository.findOne.mockResolvedValue(null);
 
       const result = await repository.update('non-existent-id', {
         name: 'Test',
@@ -705,7 +692,7 @@ describe('UsersRepository', () => {
 
   describe('delete', () => {
     it('should soft delete user', async () => {
-      (mockTypeormRepository.softDelete as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.softDelete.mockResolvedValue({
         affected: 1,
       });
 
@@ -715,7 +702,7 @@ describe('UsersRepository', () => {
     });
 
     it('should handle delete for non-existent user', async () => {
-      (mockTypeormRepository.softDelete as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.softDelete.mockResolvedValue({
         affected: 0,
       });
 
@@ -726,12 +713,10 @@ describe('UsersRepository', () => {
   describe('activate', () => {
     it('should activate user and return updated entity', async () => {
       const activatedUser = { ...mockUser, isActive: true };
-      (mockTypeormRepository.update as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.update.mockResolvedValue({
         affected: 1,
       });
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(
-        activatedUser,
-      );
+      mockTypeormRepository.findOne.mockResolvedValue(activatedUser);
 
       const result = await repository.activate('user-1');
 
@@ -742,10 +727,10 @@ describe('UsersRepository', () => {
     });
 
     it('should return null when user not found', async () => {
-      (mockTypeormRepository.update as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.update.mockResolvedValue({
         affected: 0,
       });
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(null);
+      mockTypeormRepository.findOne.mockResolvedValue(null);
 
       const result = await repository.activate('non-existent-id');
 
@@ -756,12 +741,10 @@ describe('UsersRepository', () => {
   describe('deactivate', () => {
     it('should deactivate user and return updated entity', async () => {
       const deactivatedUser = { ...mockUser, isActive: false };
-      (mockTypeormRepository.update as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.update.mockResolvedValue({
         affected: 1,
       });
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(
-        deactivatedUser,
-      );
+      mockTypeormRepository.findOne.mockResolvedValue(deactivatedUser);
 
       const result = await repository.deactivate('user-1');
 
@@ -772,10 +755,10 @@ describe('UsersRepository', () => {
     });
 
     it('should return null when user not found', async () => {
-      (mockTypeormRepository.update as jest.Mock).mockResolvedValue({
+      mockTypeormRepository.update.mockResolvedValue({
         affected: 0,
       });
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(null);
+      mockTypeormRepository.findOne.mockResolvedValue(null);
 
       const result = await repository.deactivate('non-existent-id');
 
@@ -785,7 +768,7 @@ describe('UsersRepository', () => {
 
   describe('relation queries', () => {
     it('should load roles relation for user', async () => {
-      (mockTypeormRepository.findOne as jest.Mock).mockResolvedValue(mockUser);
+      mockTypeormRepository.findOne.mockResolvedValue(mockUser);
 
       await repository.findById('user-1');
 
@@ -797,10 +780,7 @@ describe('UsersRepository', () => {
     });
 
     it('should load roles relation for all users in findAll', async () => {
-      (mockTypeormRepository.findAndCount as jest.Mock).mockResolvedValue([
-        [mockUser],
-        1,
-      ]);
+      mockTypeormRepository.findAndCount.mockResolvedValue([[mockUser], 1]);
 
       await repository.findAll();
 

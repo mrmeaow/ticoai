@@ -52,21 +52,21 @@ async function bootstrap() {
       .setTitle('TICOAI API')
       .setDescription(
         'AI-Powered Customer Support Ticket System API\n\n' +
-        'This API provides endpoints for managing support tickets, ' +
-        'users, roles, permissions, and AI-powered features.\n\n' +
-        '## Authentication\n' +
-        'Most endpoints require authentication via JWT Bearer token. ' +
-        'Use the **Authorize** button above to enter your access token.\n\n' +
-        '## Available Tags\n' +
-        '- **Health**: API health check\n' +
-        '- **Auth**: Registration, login, refresh, logout\n' +
-        '- **Users**: User management and profiles\n' +
-        '- **Roles**: Role and permission management\n' +
-        '- **Tickets**: Support ticket CRUD operations\n' +
-        '- **Messages**: Ticket message management\n' +
-        '- **AI**: AI-powered ticket analysis and reply suggestions\n' +
-        '- **SSE**: Server-Sent Events for real-time AI job updates\n' +
-        '- **Dashboard**: Dashboard statistics and metrics\n',
+          'This API provides endpoints for managing support tickets, ' +
+          'users, roles, permissions, and AI-powered features.\n\n' +
+          '## Authentication\n' +
+          'Most endpoints require authentication via JWT Bearer token. ' +
+          'Use the **Authorize** button above to enter your access token.\n\n' +
+          '## Available Tags\n' +
+          '- **Health**: API health check\n' +
+          '- **Auth**: Registration, login, refresh, logout\n' +
+          '- **Users**: User management and profiles\n' +
+          '- **Roles**: Role and permission management\n' +
+          '- **Tickets**: Support ticket CRUD operations\n' +
+          '- **Messages**: Ticket message management\n' +
+          '- **AI**: AI-powered ticket analysis and reply suggestions\n' +
+          '- **SSE**: Server-Sent Events for real-time AI job updates\n' +
+          '- **Dashboard**: Dashboard statistics and metrics\n',
       )
       .setVersion('2.0.0')
       .setContact(
@@ -74,10 +74,7 @@ async function bootstrap() {
         'https://ticoai.com/support',
         'support@ticoai.com',
       )
-      .setLicense(
-        'Proprietary',
-        'https://ticoai.com/license',
-      )
+      .setLicense('Proprietary', 'https://ticoai.com/license')
       .addBearerAuth(
         {
           type: 'http',

@@ -38,6 +38,7 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+screenshots/
 playwright-report/
 test-results/
 

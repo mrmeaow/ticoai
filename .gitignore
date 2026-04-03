@@ -25,6 +25,12 @@ Thumbs.db
 
 # Test coverage
 coverage/
+coverage-e2e/
+
+# Test artifacts
+test-results/
+playwright-report/
+screenshots/
 
 # Temporary files
 tmp/
