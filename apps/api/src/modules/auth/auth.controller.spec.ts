@@ -18,13 +18,11 @@ describe('AuthController', () => {
     authService = {
       register: jest.fn().mockResolvedValue(mockTokens),
       login: jest.fn().mockResolvedValue(mockTokens),
-      validateUser: jest
-        .fn()
-        .mockResolvedValue({
-          id: 'user-id',
-          email: 'test@example.com',
-          name: 'Test User',
-        }),
+      validateUser: jest.fn().mockResolvedValue({
+        id: 'user-id',
+        email: 'test@example.com',
+        name: 'Test User',
+      }),
       refreshToken: jest.fn().mockResolvedValue(mockTokens),
       logout: jest.fn().mockResolvedValue(undefined),
     };

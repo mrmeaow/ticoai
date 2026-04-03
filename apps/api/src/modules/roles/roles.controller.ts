@@ -157,7 +157,9 @@ export class RolesController {
     description: 'Conflict - Permission already exists',
     type: ErrorResponseDto,
   })
-  async createPermission(@Body() body: CreatePermissionDto): Promise<Permission> {
+  async createPermission(
+    @Body() body: CreatePermissionDto,
+  ): Promise<Permission> {
     return this.rolesService.createPermission(
       body.resource,
       body.action,

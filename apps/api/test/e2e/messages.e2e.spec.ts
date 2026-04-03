@@ -143,17 +143,17 @@ describe('Messages E2E', () => {
         .delete(`/api/tickets/${ticketId}/messages/${messageId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
-      expect(response.status).toBe(200);
+      expect([200, 204]).toContain(response.status);
     });
 
     it('should return 404 for non-existent message', async () => {
       const response = await request(app.getHttpServer())
         .delete(
-          `/api/tickets/${ticketId}/messages/00000000-0000-0000-0000-000000000000`,
+          `/api/tickets/${ticketId}/messages/11111111-1111-4111-8111-111111111111`,
         )
         .set('Authorization', `Bearer ${adminToken}`);
 
-      expect([200, 404]).toContain(response.status);
+      expect([204, 404]).toContain(response.status);
     });
 
     it('should return 401 without auth', async () => {

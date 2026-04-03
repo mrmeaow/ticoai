@@ -88,7 +88,7 @@ export class UsersController {
   @Get('me')
   @ApiOperation({
     summary: 'Get current user profile',
-    description: 'Returns the authenticated user\'s profile information.',
+    description: "Returns the authenticated user's profile information.",
   })
   @ApiResponse({
     status: 200,
@@ -136,8 +136,7 @@ export class UsersController {
   @Permissions('users:update')
   @ApiOperation({
     summary: 'Update a user',
-    description:
-      'Updates an existing user. Requires users:update permission.',
+    description: 'Updates an existing user. Requires users:update permission.',
   })
   @ApiParam({
     name: 'id',
@@ -252,7 +251,8 @@ export class UsersController {
   @Permissions('users:update')
   @ApiOperation({
     summary: 'Assign roles to a user',
-    description: 'Assigns one or more roles to a user. Replaces existing roles.',
+    description:
+      'Assigns one or more roles to a user. Replaces existing roles.',
   })
   @ApiParam({
     name: 'id',

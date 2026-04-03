@@ -3,14 +3,65 @@
  * Do not edit manually.
  * TICOAI API
  * AI-Powered Customer Support Ticket System API
+
+This API provides endpoints for managing support tickets, users, roles, permissions, and AI-powered features.
+
+## Authentication
+Most endpoints require authentication via JWT Bearer token. Use the **Authorize** button above to enter your access token.
+
+## Available Tags
+- **Health**: API health check
+- **Auth**: Registration, login, refresh, logout
+- **Users**: User management and profiles
+- **Roles**: Role and permission management
+- **Tickets**: Support ticket CRUD operations
+- **Messages**: Ticket message management
+- **AI**: AI-powered ticket analysis and reply suggestions
+- **SSE**: Server-Sent Events for real-time AI job updates
+- **Dashboard**: Dashboard statistics and metrics
+
  * OpenAPI spec version: 2.0.0
  */
 
+export * from './aiJobResponseDto';
+export * from './assignRolesDto';
 export * from './authResponseDto';
+export * from './createMessageDto';
+export * from './createMessageDtoRole';
+export * from './createPermissionDto';
+export * from './createRoleDto';
+export * from './createTicketDto';
+export * from './createTicketDtoPriority';
+export * from './dashboardStatsDto';
+export * from './detectPriorityDto';
+export * from './errorResponseDto';
+export * from './errorResponseDtoMessage';
 export * from './loginDto';
 export * from './logoutResponseDto';
 export * from './message';
+export * from './messageRole';
+export * from './permission';
 export * from './refreshTokenDto';
 export * from './registerDto';
+export * from './role';
 export * from './sseControllerStreamJobResultsParams';
+export * from './sseJobResultDto';
+export * from './sseJobResultDtoStatus';
+export * from './suggestReplyDto';
+export * from './summarizeTicketDto';
+export * from './ticket';
+export * from './ticketListResponseDto';
+export * from './ticketPriority';
+export * from './ticketStatsDto';
+export * from './ticketStatus';
 export * from './ticketsControllerFindAllParams';
+export * from './ticketsControllerFindAllPriority';
+export * from './ticketsControllerFindAllStatus';
+export * from './updateProfileDto';
+export * from './updateTicketDto';
+export * from './updateTicketDtoPriority';
+export * from './updateTicketDtoStatus';
+export * from './updateUserDto';
+export * from './user';
+export * from './userListResponseDto';
+export * from './usersControllerFindAllParams';

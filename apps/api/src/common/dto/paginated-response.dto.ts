@@ -14,13 +14,15 @@ export class PaginatedResponseDto<T> {
   total: number;
 
   @ApiProperty({
-    description: 'Whether there are more items available after the current page',
+    description:
+      'Whether there are more items available after the current page',
     example: true,
   })
   hasMore: boolean;
 
   @ApiPropertyOptional({
-    description: 'Cursor for the next page (UUID format for cursor-based pagination)',
+    description:
+      'Cursor for the next page (UUID format for cursor-based pagination)',
     format: 'uuid',
   })
   nextCursor?: string;

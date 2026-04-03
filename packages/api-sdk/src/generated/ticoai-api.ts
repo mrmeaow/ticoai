@@ -3,322 +3,515 @@
  * Do not edit manually.
  * TICOAI API
  * AI-Powered Customer Support Ticket System API
+
+This API provides endpoints for managing support tickets, users, roles, permissions, and AI-powered features.
+
+## Authentication
+Most endpoints require authentication via JWT Bearer token. Use the **Authorize** button above to enter your access token.
+
+## Available Tags
+- **Health**: API health check
+- **Auth**: Registration, login, refresh, logout
+- **Users**: User management and profiles
+- **Roles**: Role and permission management
+- **Tickets**: Support ticket CRUD operations
+- **Messages**: Ticket message management
+- **AI**: AI-powered ticket analysis and reply suggestions
+- **SSE**: Server-Sent Events for real-time AI job updates
+- **Dashboard**: Dashboard statistics and metrics
+
  * OpenAPI spec version: 2.0.0
  */
-import axios from 'axios';
 import type {
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
-import type {
+  AiJobResponseDto,
+  AssignRolesDto,
   AuthResponseDto,
+  CreateMessageDto,
+  CreatePermissionDto,
+  CreateRoleDto,
+  CreateTicketDto,
+  DashboardStatsDto,
+  DetectPriorityDto,
   LoginDto,
   LogoutResponseDto,
   Message,
+  Permission,
   RefreshTokenDto,
   RegisterDto,
+  Role,
   SseControllerStreamJobResultsParams,
-  TicketsControllerFindAllParams
+  SseJobResultDto,
+  SuggestReplyDto,
+  SummarizeTicketDto,
+  Ticket,
+  TicketListResponseDto,
+  TicketsControllerFindAllParams,
+  UpdateProfileDto,
+  UpdateTicketDto,
+  UpdateUserDto,
+  User,
+  UserListResponseDto,
+  UsersControllerFindAllParams
 } from './schemas';
 
-export const appControllerGetHello = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api`,options
-    );
-  }
+import { customInstance } from '../mutator';
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
+
+  /**
+ * Returns a simple health check response to verify the API is running.
+ * @summary Health check
+ */
+export const appControllerGetHello = (
+    
+ options?: SecondParameter<typeof customInstance<unknown>>,) => {
+      return customInstance<unknown>(
+      {url: `/api`, method: 'GET'
+    },
+      options);
+    }
+  
 /**
+ * Creates a new user account with email, password, and name. Returns JWT tokens on success.
  * @summary Register a new user
  */
-export const authControllerRegister = <TData = AxiosResponse<AuthResponseDto>>(
-    registerDto: RegisterDto, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/auth/register`,
-      registerDto,options
-    );
-  }
-
+export const authControllerRegister = (
+    registerDto: RegisterDto,
+ options?: SecondParameter<typeof customInstance<AuthResponseDto>>,) => {
+      return customInstance<AuthResponseDto>(
+      {url: `/api/auth/register`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: registerDto
+    },
+      options);
+    }
+  
 /**
+ * Authenticates user with email and password. Returns JWT tokens and sets refresh token in cookie.
  * @summary Login user
  */
-export const authControllerLogin = <TData = AxiosResponse<AuthResponseDto>>(
-    loginDto: LoginDto, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/auth/login`,
-      loginDto,options
-    );
-  }
-
+export const authControllerLogin = (
+    loginDto: LoginDto,
+ options?: SecondParameter<typeof customInstance<AuthResponseDto>>,) => {
+      return customInstance<AuthResponseDto>(
+      {url: `/api/auth/login`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: loginDto
+    },
+      options);
+    }
+  
 /**
+ * Generates a new access token using a valid refresh token. Refresh token can be sent in body or cookie.
  * @summary Refresh access token
  */
-export const authControllerRefresh = <TData = AxiosResponse<AuthResponseDto>>(
-    refreshTokenDto: RefreshTokenDto, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/auth/refresh`,
-      refreshTokenDto,options
-    );
-  }
-
+export const authControllerRefresh = (
+    refreshTokenDto?: RefreshTokenDto,
+ options?: SecondParameter<typeof customInstance<AuthResponseDto>>,) => {
+      return customInstance<AuthResponseDto>(
+      {url: `/api/auth/refresh`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: refreshTokenDto
+    },
+      options);
+    }
+  
 /**
+ * Invalidates the refresh token and clears the cookie. Requires valid access token.
  * @summary Logout user
  */
-export const authControllerLogout = <TData = AxiosResponse<LogoutResponseDto>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/auth/logout`,undefined,options
-    );
-  }
-
-export const usersControllerFindAll = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/users`,options
-    );
-  }
-
-export const usersControllerGetCurrentUser = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/users/me`,options
-    );
-  }
-
-export const usersControllerUpdateProfile = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.patch(
-      `/api/users/me`,undefined,options
-    );
-  }
-
-export const usersControllerUpdateUser = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.patch(
-      `/api/users/${id}`,undefined,options
-    );
-  }
-
-export const usersControllerDeleteUser = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.delete(
-      `/api/users/${id}`,options
-    );
-  }
-
-export const usersControllerActivateUser = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/users/${id}/activate`,undefined,options
-    );
-  }
-
-export const usersControllerDeactivateUser = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/users/${id}/deactivate`,undefined,options
-    );
-  }
-
-export const usersControllerAssignRoles = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.patch(
-      `/api/users/${id}/roles`,undefined,options
-    );
-  }
-
-export const rolesControllerFindAllRoles = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/roles`,options
-    );
-  }
-
-export const rolesControllerCreateRole = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/roles`,undefined,options
-    );
-  }
-
-export const rolesControllerFindAllPermissions = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/roles/permissions`,options
-    );
-  }
-
-export const rolesControllerCreatePermission = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/roles/permissions`,undefined,options
-    );
-  }
-
-export const ticketsControllerFindAll = <TData = AxiosResponse<void>>(
-    params: TicketsControllerFindAllParams, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/tickets`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
-export const ticketsControllerCreate = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/tickets`,undefined,options
-    );
-  }
-
-export const ticketsControllerFindOne = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/tickets/${id}`,options
-    );
-  }
-
-export const ticketsControllerUpdate = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.patch(
-      `/api/tickets/${id}`,undefined,options
-    );
-  }
-
-export const ticketsControllerDelete = <TData = AxiosResponse<void>>(
-    id: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.delete(
-      `/api/tickets/${id}`,options
-    );
-  }
-
+export const authControllerLogout = (
+    
+ options?: SecondParameter<typeof customInstance<LogoutResponseDto>>,) => {
+      return customInstance<LogoutResponseDto>(
+      {url: `/api/auth/logout`, method: 'POST'
+    },
+      options);
+    }
+  
 /**
+ * Returns a paginated list of users. Requires users:read permission.
+ * @summary List all users
+ */
+export const usersControllerFindAll = (
+    params?: UsersControllerFindAllParams,
+ options?: SecondParameter<typeof customInstance<UserListResponseDto>>,) => {
+      return customInstance<UserListResponseDto>(
+      {url: `/api/users`, method: 'GET',
+        params
+    },
+      options);
+    }
+  
+/**
+ * Returns the authenticated user's profile information.
+ * @summary Get current user profile
+ */
+export const usersControllerGetCurrentUser = (
+    
+ options?: SecondParameter<typeof customInstance<User>>,) => {
+      return customInstance<User>(
+      {url: `/api/users/me`, method: 'GET'
+    },
+      options);
+    }
+  
+/**
+ * Allows the authenticated user to update their own profile.
+ * @summary Update current user profile
+ */
+export const usersControllerUpdateProfile = (
+    updateProfileDto: UpdateProfileDto,
+ options?: SecondParameter<typeof customInstance<User>>,) => {
+      return customInstance<User>(
+      {url: `/api/users/me`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateProfileDto
+    },
+      options);
+    }
+  
+/**
+ * Updates an existing user. Requires users:update permission.
+ * @summary Update a user
+ */
+export const usersControllerUpdateUser = (
+    id: string | undefined | null,
+    updateUserDto: UpdateUserDto,
+ options?: SecondParameter<typeof customInstance<User>>,) => {
+      return customInstance<User>(
+      {url: `/api/users/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateUserDto
+    },
+      options);
+    }
+  
+/**
+ * Soft deletes a user. Requires users:delete permission.
+ * @summary Delete a user
+ */
+export const usersControllerDeleteUser = (
+    id: string | undefined | null,
+ options?: SecondParameter<typeof customInstance<void>>,) => {
+      return customInstance<void>(
+      {url: `/api/users/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
+/**
+ * Activates a deactivated user account.
+ * @summary Activate a user
+ */
+export const usersControllerActivateUser = (
+    id: string | undefined | null,
+ options?: SecondParameter<typeof customInstance<User>>,) => {
+      return customInstance<User>(
+      {url: `/api/users/${id}/activate`, method: 'POST'
+    },
+      options);
+    }
+  
+/**
+ * Deactivates a user account without deleting it.
+ * @summary Deactivate a user
+ */
+export const usersControllerDeactivateUser = (
+    id: string | undefined | null,
+ options?: SecondParameter<typeof customInstance<User>>,) => {
+      return customInstance<User>(
+      {url: `/api/users/${id}/deactivate`, method: 'POST'
+    },
+      options);
+    }
+  
+/**
+ * Assigns one or more roles to a user. Replaces existing roles.
+ * @summary Assign roles to a user
+ */
+export const usersControllerAssignRoles = (
+    id: string | undefined | null,
+    assignRolesDto: AssignRolesDto,
+ options?: SecondParameter<typeof customInstance<User>>,) => {
+      return customInstance<User>(
+      {url: `/api/users/${id}/roles`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: assignRolesDto
+    },
+      options);
+    }
+  
+/**
+ * Returns a list of all roles in the system. Requires roles:read permission.
+ * @summary List all roles
+ */
+export const rolesControllerFindAllRoles = (
+    
+ options?: SecondParameter<typeof customInstance<Role[]>>,) => {
+      return customInstance<Role[]>(
+      {url: `/api/roles`, method: 'GET'
+    },
+      options);
+    }
+  
+/**
+ * Creates a new role with the specified name and optional description. Requires roles:create permission.
+ * @summary Create a new role
+ */
+export const rolesControllerCreateRole = (
+    createRoleDto: CreateRoleDto,
+ options?: SecondParameter<typeof customInstance<Role>>,) => {
+      return customInstance<Role>(
+      {url: `/api/roles`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createRoleDto
+    },
+      options);
+    }
+  
+/**
+ * Returns a list of all available permissions. Requires roles:read permission.
+ * @summary List all permissions
+ */
+export const rolesControllerFindAllPermissions = (
+    
+ options?: SecondParameter<typeof customInstance<Permission[]>>,) => {
+      return customInstance<Permission[]>(
+      {url: `/api/roles/permissions`, method: 'GET'
+    },
+      options);
+    }
+  
+/**
+ * Creates a new permission with resource, action, and optional description. Requires roles:create permission.
+ * @summary Create a new permission
+ */
+export const rolesControllerCreatePermission = (
+    createPermissionDto: CreatePermissionDto,
+ options?: SecondParameter<typeof customInstance<Permission>>,) => {
+      return customInstance<Permission>(
+      {url: `/api/roles/permissions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createPermissionDto
+    },
+      options);
+    }
+  
+/**
+ * Returns a paginated list of tickets with optional filters. Agents see only their assigned tickets, admins see all tickets.
+ * @summary List all tickets
+ */
+export const ticketsControllerFindAll = (
+    params?: TicketsControllerFindAllParams,
+ options?: SecondParameter<typeof customInstance<TicketListResponseDto>>,) => {
+      return customInstance<TicketListResponseDto>(
+      {url: `/api/tickets`, method: 'GET',
+        params
+    },
+      options);
+    }
+  
+/**
+ * Creates a new support ticket. Agents and Admins can create tickets. Regular users can only create tickets for themselves.
+ * @summary Create a new ticket
+ */
+export const ticketsControllerCreate = (
+    createTicketDto: CreateTicketDto,
+ options?: SecondParameter<typeof customInstance<Ticket>>,) => {
+      return customInstance<Ticket>(
+      {url: `/api/tickets`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createTicketDto
+    },
+      options);
+    }
+  
+/**
+ * Retrieves a single ticket by its unique identifier including messages and AI results.
+ * @summary Get ticket by ID
+ */
+export const ticketsControllerFindOne = (
+    id: string | undefined | null,
+ options?: SecondParameter<typeof customInstance<Ticket>>,) => {
+      return customInstance<Ticket>(
+      {url: `/api/tickets/${id}`, method: 'GET'
+    },
+      options);
+    }
+  
+/**
+ * Updates an existing ticket. Can update title, description, status, priority, and assignee.
+ * @summary Update a ticket
+ */
+export const ticketsControllerUpdate = (
+    id: string | undefined | null,
+    updateTicketDto?: UpdateTicketDto,
+ options?: SecondParameter<typeof customInstance<Ticket>>,) => {
+      return customInstance<Ticket>(
+      {url: `/api/tickets/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateTicketDto
+    },
+      options);
+    }
+  
+/**
+ * Soft deletes a ticket. Only admins can delete tickets.
+ * @summary Delete a ticket
+ */
+export const ticketsControllerDelete = (
+    id: string | undefined | null,
+ options?: SecondParameter<typeof customInstance<void>>,) => {
+      return customInstance<void>(
+      {url: `/api/tickets/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
+/**
+ * Returns all messages for a specific ticket, ordered by creation time.
  * @summary Get all messages in a ticket
  */
-export const messagesControllerFindByTicket = <TData = AxiosResponse<Message[]>>(
-    ticketId: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/tickets/${ticketId}/messages`,options
-    );
-  }
-
+export const messagesControllerFindByTicket = (
+    ticketId: string | undefined | null,
+ options?: SecondParameter<typeof customInstance<Message[]>>,) => {
+      return customInstance<Message[]>(
+      {url: `/api/tickets/${ticketId}/messages`, method: 'GET'
+    },
+      options);
+    }
+  
 /**
+ * Adds a new message to a ticket. The message is attributed to the authenticated user.
  * @summary Create a message in a ticket
  */
-export const messagesControllerCreate = <TData = AxiosResponse<Message>>(
-    ticketId: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/tickets/${ticketId}/messages`,undefined,options
-    );
-  }
-
+export const messagesControllerCreate = (
+    ticketId: string | undefined | null,
+    createMessageDto: CreateMessageDto,
+ options?: SecondParameter<typeof customInstance<Message>>,) => {
+      return customInstance<Message>(
+      {url: `/api/tickets/${ticketId}/messages`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createMessageDto
+    },
+      options);
+    }
+  
 /**
+ * Soft deletes a message. Requires messages:delete permission.
  * @summary Delete a message
  */
-export const messagesControllerDelete = <TData = AxiosResponse<void>>(
-    ticketId: unknown,
-    messageId: string, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.delete(
-      `/api/tickets/${ticketId}/messages/${messageId}`,options
-    );
-  }
-
-export const aiControllerSummarize = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/ai/summarize`,undefined,options
-    );
-  }
-
-export const aiControllerDetectPriority = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/ai/detect-priority`,undefined,options
-    );
-  }
-
-export const aiControllerSuggestReply = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.post(
-      `/api/ai/suggest-reply`,undefined,options
-    );
-  }
-
-export const sseControllerStreamJobResults = <TData = AxiosResponse<void>>(
-    jobId: string,
-    params: SseControllerStreamJobResultsParams, options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/sse/jobs/${jobId}`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
-export const dashboardControllerGetDashboard = <TData = AxiosResponse<void>>(
-     options?: AxiosRequestConfig
- ): Promise<TData> => {
-    return axios.get(
-      `/api/dashboard`,options
-    );
-  }
-
-export type AppControllerGetHelloResult = AxiosResponse<void>
-export type AuthControllerRegisterResult = AxiosResponse<AuthResponseDto>
-export type AuthControllerLoginResult = AxiosResponse<AuthResponseDto>
-export type AuthControllerRefreshResult = AxiosResponse<AuthResponseDto>
-export type AuthControllerLogoutResult = AxiosResponse<LogoutResponseDto>
-export type UsersControllerFindAllResult = AxiosResponse<void>
-export type UsersControllerGetCurrentUserResult = AxiosResponse<void>
-export type UsersControllerUpdateProfileResult = AxiosResponse<void>
-export type UsersControllerUpdateUserResult = AxiosResponse<void>
-export type UsersControllerDeleteUserResult = AxiosResponse<void>
-export type UsersControllerActivateUserResult = AxiosResponse<void>
-export type UsersControllerDeactivateUserResult = AxiosResponse<void>
-export type UsersControllerAssignRolesResult = AxiosResponse<void>
-export type RolesControllerFindAllRolesResult = AxiosResponse<void>
-export type RolesControllerCreateRoleResult = AxiosResponse<void>
-export type RolesControllerFindAllPermissionsResult = AxiosResponse<void>
-export type RolesControllerCreatePermissionResult = AxiosResponse<void>
-export type TicketsControllerFindAllResult = AxiosResponse<void>
-export type TicketsControllerCreateResult = AxiosResponse<void>
-export type TicketsControllerFindOneResult = AxiosResponse<void>
-export type TicketsControllerUpdateResult = AxiosResponse<void>
-export type TicketsControllerDeleteResult = AxiosResponse<void>
-export type MessagesControllerFindByTicketResult = AxiosResponse<Message[]>
-export type MessagesControllerCreateResult = AxiosResponse<Message>
-export type MessagesControllerDeleteResult = AxiosResponse<void>
-export type AiControllerSummarizeResult = AxiosResponse<void>
-export type AiControllerDetectPriorityResult = AxiosResponse<void>
-export type AiControllerSuggestReplyResult = AxiosResponse<void>
-export type SseControllerStreamJobResultsResult = AxiosResponse<void>
-export type DashboardControllerGetDashboardResult = AxiosResponse<void>
+export const messagesControllerDelete = (
+    ticketId: unknown | undefined | null,
+    messageId: string | undefined | null,
+ options?: SecondParameter<typeof customInstance<void>>,) => {
+      return customInstance<void>(
+      {url: `/api/tickets/${ticketId}/messages/${messageId}`, method: 'DELETE'
+    },
+      options);
+    }
+  
+/**
+ * Queues an AI job to summarize a ticket and its conversation history. Returns a job ID for tracking progress via SSE.
+ * @summary Summarize a ticket
+ */
+export const aiControllerSummarize = (
+    summarizeTicketDto: SummarizeTicketDto,
+ options?: SecondParameter<typeof customInstance<AiJobResponseDto>>,) => {
+      return customInstance<AiJobResponseDto>(
+      {url: `/api/ai/summarize`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: summarizeTicketDto
+    },
+      options);
+    }
+  
+/**
+ * Queues an AI job to analyze a ticket and detect its priority level (LOW, MEDIUM, HIGH, CRITICAL). Returns a job ID for tracking progress via SSE.
+ * @summary Detect ticket priority
+ */
+export const aiControllerDetectPriority = (
+    detectPriorityDto: DetectPriorityDto,
+ options?: SecondParameter<typeof customInstance<AiJobResponseDto>>,) => {
+      return customInstance<AiJobResponseDto>(
+      {url: `/api/ai/detect-priority`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: detectPriorityDto
+    },
+      options);
+    }
+  
+/**
+ * Queues an AI job to generate a suggested reply for a ticket. The reply will be automatically added as a message upon completion. Returns a job ID for tracking progress via SSE.
+ * @summary Suggest a reply
+ */
+export const aiControllerSuggestReply = (
+    suggestReplyDto: SuggestReplyDto,
+ options?: SecondParameter<typeof customInstance<AiJobResponseDto>>,) => {
+      return customInstance<AiJobResponseDto>(
+      {url: `/api/ai/suggest-reply`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: suggestReplyDto
+    },
+      options);
+    }
+  
+/**
+ * Establishes a Server-Sent Events (SSE) connection to receive real-time updates for an AI processing job. Events include status changes (pending, processing, completed, failed) and results. Use the token query parameter for authentication if cookies are not available.
+ * @summary Stream AI job results via SSE
+ */
+export const sseControllerStreamJobResults = (
+    jobId: string | undefined | null,
+    params?: SseControllerStreamJobResultsParams,
+ options?: SecondParameter<typeof customInstance<SseJobResultDto>>,) => {
+      return customInstance<SseJobResultDto>(
+      {url: `/api/sse/jobs/${jobId}`, method: 'GET',
+        params
+    },
+      options);
+    }
+  
+/**
+ * Returns dashboard statistics including ticket counts by status, high priority count, and recent tickets. Admins see all tickets, other users see only their assigned tickets.
+ * @summary Get dashboard statistics
+ */
+export const dashboardControllerGetDashboard = (
+    
+ options?: SecondParameter<typeof customInstance<DashboardStatsDto>>,) => {
+      return customInstance<DashboardStatsDto>(
+      {url: `/api/dashboard`, method: 'GET'
+    },
+      options);
+    }
+  
+export type AppControllerGetHelloResult = NonNullable<Awaited<ReturnType<typeof appControllerGetHello>>>
+export type AuthControllerRegisterResult = NonNullable<Awaited<ReturnType<typeof authControllerRegister>>>
+export type AuthControllerLoginResult = NonNullable<Awaited<ReturnType<typeof authControllerLogin>>>
+export type AuthControllerRefreshResult = NonNullable<Awaited<ReturnType<typeof authControllerRefresh>>>
+export type AuthControllerLogoutResult = NonNullable<Awaited<ReturnType<typeof authControllerLogout>>>
+export type UsersControllerFindAllResult = NonNullable<Awaited<ReturnType<typeof usersControllerFindAll>>>
+export type UsersControllerGetCurrentUserResult = NonNullable<Awaited<ReturnType<typeof usersControllerGetCurrentUser>>>
+export type UsersControllerUpdateProfileResult = NonNullable<Awaited<ReturnType<typeof usersControllerUpdateProfile>>>
+export type UsersControllerUpdateUserResult = NonNullable<Awaited<ReturnType<typeof usersControllerUpdateUser>>>
+export type UsersControllerDeleteUserResult = NonNullable<Awaited<ReturnType<typeof usersControllerDeleteUser>>>
+export type UsersControllerActivateUserResult = NonNullable<Awaited<ReturnType<typeof usersControllerActivateUser>>>
+export type UsersControllerDeactivateUserResult = NonNullable<Awaited<ReturnType<typeof usersControllerDeactivateUser>>>
+export type UsersControllerAssignRolesResult = NonNullable<Awaited<ReturnType<typeof usersControllerAssignRoles>>>
+export type RolesControllerFindAllRolesResult = NonNullable<Awaited<ReturnType<typeof rolesControllerFindAllRoles>>>
+export type RolesControllerCreateRoleResult = NonNullable<Awaited<ReturnType<typeof rolesControllerCreateRole>>>
+export type RolesControllerFindAllPermissionsResult = NonNullable<Awaited<ReturnType<typeof rolesControllerFindAllPermissions>>>
+export type RolesControllerCreatePermissionResult = NonNullable<Awaited<ReturnType<typeof rolesControllerCreatePermission>>>
+export type TicketsControllerFindAllResult = NonNullable<Awaited<ReturnType<typeof ticketsControllerFindAll>>>
+export type TicketsControllerCreateResult = NonNullable<Awaited<ReturnType<typeof ticketsControllerCreate>>>
+export type TicketsControllerFindOneResult = NonNullable<Awaited<ReturnType<typeof ticketsControllerFindOne>>>
+export type TicketsControllerUpdateResult = NonNullable<Awaited<ReturnType<typeof ticketsControllerUpdate>>>
+export type TicketsControllerDeleteResult = NonNullable<Awaited<ReturnType<typeof ticketsControllerDelete>>>
+export type MessagesControllerFindByTicketResult = NonNullable<Awaited<ReturnType<typeof messagesControllerFindByTicket>>>
+export type MessagesControllerCreateResult = NonNullable<Awaited<ReturnType<typeof messagesControllerCreate>>>
+export type MessagesControllerDeleteResult = NonNullable<Awaited<ReturnType<typeof messagesControllerDelete>>>
+export type AiControllerSummarizeResult = NonNullable<Awaited<ReturnType<typeof aiControllerSummarize>>>
+export type AiControllerDetectPriorityResult = NonNullable<Awaited<ReturnType<typeof aiControllerDetectPriority>>>
+export type AiControllerSuggestReplyResult = NonNullable<Awaited<ReturnType<typeof aiControllerSuggestReply>>>
+export type SseControllerStreamJobResultsResult = NonNullable<Awaited<ReturnType<typeof sseControllerStreamJobResults>>>
+export type DashboardControllerGetDashboardResult = NonNullable<Awaited<ReturnType<typeof dashboardControllerGetDashboard>>>

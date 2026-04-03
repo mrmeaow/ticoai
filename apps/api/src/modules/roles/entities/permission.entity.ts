@@ -6,7 +6,11 @@ import {
   OneToMany,
   Unique,
 } from 'typeorm';
-import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiHideProperty,
+} from '@nestjs/swagger';
 import { RolePermission } from './role-permission.entity';
 
 @Entity('permissions')

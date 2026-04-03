@@ -6,6 +6,7 @@ node_modules/
 dist/
 build/
 *.log
+.logs/
 
 # Environment files
 .env
@@ -24,6 +25,12 @@ Thumbs.db
 
 # Test coverage
 coverage/
+coverage-e2e/
+
+# Test artifacts
+test-results/
+playwright-report/
+screenshots/
 
 # Temporary files
 tmp/

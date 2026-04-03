@@ -3,7 +3,44 @@
  * Do not edit manually.
  * TICOAI API
  * AI-Powered Customer Support Ticket System API
+
+This API provides endpoints for managing support tickets, users, roles, permissions, and AI-powered features.
+
+## Authentication
+Most endpoints require authentication via JWT Bearer token. Use the **Authorize** button above to enter your access token.
+
+## Available Tags
+- **Health**: API health check
+- **Auth**: Registration, login, refresh, logout
+- **Users**: User management and profiles
+- **Roles**: Role and permission management
+- **Tickets**: Support ticket CRUD operations
+- **Messages**: Ticket message management
+- **AI**: AI-powered ticket analysis and reply suggestions
+- **SSE**: Server-Sent Events for real-time AI job updates
+- **Dashboard**: Dashboard statistics and metrics
+
  * OpenAPI spec version: 2.0.0
  */
+import type { MessageRole } from './messageRole';
+import type { Ticket } from './ticket';
+import type { User } from './user';
 
-export type Message = { [key: string]: unknown };
+export type Message = {
+  /** Message unique identifier */
+  id: string;
+  /** Message content text */
+  content: string;
+  /** Role of the message sender */
+  role: MessageRole;
+  /** Ticket this message belongs to */
+  ticket: Ticket;
+  /** User who sent the message */
+  sender: User;
+  /** AI job ID for async processing */
+  aiJobId?: string;
+  /** Message creation timestamp */
+  createdAt: string;
+  /** Last update timestamp */
+  updatedAt: string;
+};

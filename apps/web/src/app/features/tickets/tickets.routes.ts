@@ -7,13 +7,13 @@ export const TICKETS_ROUTES: Routes = [
       import('./ticket-list.component').then((m) => m.TicketListComponent),
   },
   {
-    path: ':id',
-    loadComponent: () =>
-      import('./ticket-detail.component').then((m) => m.TicketDetailComponent),
-  },
-  {
     path: 'new',
     loadComponent: () =>
       import('./ticket-create.component').then((m) => m.TicketCreateComponent),
+  },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./ticket-detail.component').then((m) => m.TicketDetailComponent),
   },
 ];

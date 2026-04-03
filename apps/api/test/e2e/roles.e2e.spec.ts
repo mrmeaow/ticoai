@@ -77,7 +77,7 @@ describe('Roles E2E', () => {
       const response = await request(app.getHttpServer())
         .post('/api/roles')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'TestRole', permissions: [] });
+        .send({ name: 'TestRole' });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
@@ -88,12 +88,12 @@ describe('Roles E2E', () => {
       await request(app.getHttpServer())
         .post('/api/roles')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'DuplicateRole', permissions: [] });
+        .send({ name: 'DuplicateRole' });
 
       const response = await request(app.getHttpServer())
         .post('/api/roles')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'DuplicateRole', permissions: [] });
+        .send({ name: 'DuplicateRole' });
 
       expect(response.status).toBe(409);
     });

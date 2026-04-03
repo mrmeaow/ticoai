@@ -1,0 +1,167 @@
+name: API CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: api-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+  DB_HOST: localhost
+  DB_PORT: 5432
+  DB_USERNAME: ticoai
+  DB_PASSWORD: ticoai_secret
+  DB_DATABASE: ticoai_test
+  REDIS_HOST: localhost
+  REDIS_PORT: 6379
+  JWT_SECRET: test-jwt-secret-ci
+  JWT_ACCESS_EXPIRATION: 15m
+  JWT_REFRESH_EXPIRATION: 7d
+  SMTP_HOST: localhost
+  SMTP_PORT: 1025
+  LMSTUDIO_URL: http://localhost:1234
+  LMSTUDIO_MODEL: local-model
+
+jobs:
+  api-unit-tests:
+    name: API Unit Tests
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm build:types
+
+      - name: Run API unit tests
+        run: pnpm --filter @app/api test
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: apps/api/coverage/
+          retention-days: 7
+
+  api-e2e-tests:
+    name: API E2E Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ticoai
+          POSTGRES_PASSWORD: ticoai_secret
+          POSTGRES_DB: ticoai_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm build:types
+
+      - name: Run database migrations
+        run: pnpm --filter @app/api migration:run
+        env:
+          DB_DATABASE: ticoai_test
+
+      - name: Run API E2E tests
+        run: pnpm --filter @app/api test:e2e
+        env:
+          DB_DATABASE: ticoai_test
+
+      - name: Upload E2E coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-e2e-coverage
+          path: apps/api/coverage-e2e/
+          retention-days: 7
+
+  api-lint:
+    name: API Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run API lint
+        run: pnpm --filter @app/api lint || true

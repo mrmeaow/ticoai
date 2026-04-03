@@ -14,7 +14,11 @@ export class ErrorResponseDto {
   })
   message: string | string[];
 
-  @ApiProperty({ description: 'Timestamp of the error', format: 'date-time', example: '2026-04-01T00:00:00.000Z' })
+  @ApiProperty({
+    description: 'Timestamp of the error',
+    format: 'date-time',
+    example: '2026-04-01T00:00:00.000Z',
+  })
   timestamp: string;
 
   @ApiProperty({

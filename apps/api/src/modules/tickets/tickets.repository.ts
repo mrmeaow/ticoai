@@ -7,6 +7,7 @@ import { TicketStatus, TicketPriority } from '@pkg/types';
 export interface FindTicketsOptions {
   status?: TicketStatus;
   priority?: TicketPriority;
+  assigneeId?: string;
   userId?: string;
   isAdmin?: boolean;
   search?: string;
@@ -50,6 +51,12 @@ export class TicketsRepository {
     if (options.priority) {
       query.andWhere('ticket.priority = :priority', {
         priority: options.priority,
+      });
+    }
+
+    if (options.assigneeId) {
+      query.andWhere('ticket.assigneeId = :assigneeId', {
+        assigneeId: options.assigneeId,
       });
     }
 

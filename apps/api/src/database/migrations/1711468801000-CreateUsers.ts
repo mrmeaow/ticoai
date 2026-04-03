@@ -61,7 +61,7 @@ export class CreateUsers1711468801000 implements MigrationInterface {
     // Create user_roles junction table
     await queryRunner.createTable(
       new Table({
-        name: 'user_roles',
+        name: 'users_roles',
         columns: [
           {
             name: 'userId',
@@ -90,7 +90,7 @@ export class CreateUsers1711468801000 implements MigrationInterface {
 
     // Create foreign keys for user_roles
     await queryRunner.createForeignKey(
-      'user_roles',
+      'users_roles',
       new TableForeignKey({
         name: 'FK_USER_ROLES_USER',
         columnNames: ['userId'],
@@ -101,7 +101,7 @@ export class CreateUsers1711468801000 implements MigrationInterface {
     );
 
     await queryRunner.createForeignKey(
-      'user_roles',
+      'users_roles',
       new TableForeignKey({
         name: 'FK_USER_ROLES_ROLE',
         columnNames: ['roleId'],
@@ -113,7 +113,7 @@ export class CreateUsers1711468801000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('user_roles');
+    await queryRunner.dropTable('users_roles');
     await queryRunner.dropTable('users');
   }
 }

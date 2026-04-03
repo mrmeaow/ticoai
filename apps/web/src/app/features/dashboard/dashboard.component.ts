@@ -1,6 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
@@ -20,27 +19,6 @@ interface DashboardStats {
   imports: [RouterLink],
   template: `
     <div class="min-h-screen bg-gray-50">
-      <nav class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center">
-              <h1 class="text-xl font-bold text-gray-900">TICOAI</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              @if (authService.currentUser(); as user) {
-                <span class="text-sm text-gray-600">{{ user.name }}</span>
-              }
-              <button
-                (click)="logout()"
-                class="text-sm text-gray-600 hover:text-gray-900"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h2>
 
@@ -110,7 +88,6 @@ interface DashboardStats {
   `,
 })
 export class DashboardComponent implements OnInit {
-  authService = inject(AuthService);
   private http = inject(HttpClient);
 
   stats = signal<DashboardStats | null>(null);
@@ -120,9 +97,5 @@ export class DashboardComponent implements OnInit {
       next: (data) => this.stats.set(data),
       error: (err) => console.error('Failed to load dashboard', err),
     });
-  }
-
-  logout() {
-    this.authService.logout().subscribe();
   }
 }

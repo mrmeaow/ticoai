@@ -3,13 +3,55 @@
  * Do not edit manually.
  * TICOAI API
  * AI-Powered Customer Support Ticket System API
+
+This API provides endpoints for managing support tickets, users, roles, permissions, and AI-powered features.
+
+## Authentication
+Most endpoints require authentication via JWT Bearer token. Use the **Authorize** button above to enter your access token.
+
+## Available Tags
+- **Health**: API health check
+- **Auth**: Registration, login, refresh, logout
+- **Users**: User management and profiles
+- **Roles**: Role and permission management
+- **Tickets**: Support ticket CRUD operations
+- **Messages**: Ticket message management
+- **AI**: AI-powered ticket analysis and reply suggestions
+- **SSE**: Server-Sent Events for real-time AI job updates
+- **Dashboard**: Dashboard statistics and metrics
+
  * OpenAPI spec version: 2.0.0
  */
+import type { TicketsControllerFindAllStatus } from './ticketsControllerFindAllStatus';
+import type { TicketsControllerFindAllPriority } from './ticketsControllerFindAllPriority';
 
 export type TicketsControllerFindAllParams = {
-status: string;
-priority: string;
-assigneeId: string;
-search: string;
-cursor: string;
+/**
+ * Filter by status
+ */
+status?: TicketsControllerFindAllStatus;
+/**
+ * Filter by priority
+ */
+priority?: TicketsControllerFindAllPriority;
+/**
+ * Filter by assignee ID (UUID)
+ */
+assigneeId?: string;
+/**
+ * Free-text search in title and description
+ */
+search?: string;
+/**
+ * Cursor for pagination (UUID of last item from previous page)
+ */
+cursor?: string;
+/**
+ * Items per page
+ */
+limit?: number;
+/**
+ * Page number
+ */
+page?: number;
 };
